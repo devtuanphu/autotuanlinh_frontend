@@ -50,7 +50,7 @@ interface FetchOptions {
  * @param cacheConfig - Next.js cache configuration
  * @returns Transformed data from Strapi
  */
-export async function fetchStrapi<T = any>(
+export async function fetchStrapi<T = Record<string, unknown>>(
   endpoint: string,
   options: FetchOptions = {},
   cacheConfig: { revalidate?: number } = { revalidate: 60 }
@@ -120,9 +120,20 @@ export async function fetchStrapi<T = any>(
 }
 
 /**
+ * Strapi Image Type
+ */
+interface StrapiImage {
+  data?: {
+    attributes?: {
+      url?: string;
+    };
+  };
+}
+
+/**
  * Transform Strapi image object to URL string
  */
-export function getStrapiImageUrl(image: any): string {
+export function getStrapiImageUrl(image: StrapiImage | null | undefined): string {
   if (!image?.data?.attributes?.url) return '';
   const url = image.data.attributes.url;
   return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
