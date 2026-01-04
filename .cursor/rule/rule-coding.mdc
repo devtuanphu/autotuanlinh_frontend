@@ -1,0 +1,81 @@
+---
+alwaysApply: true
+---
+
+# Rule: Next.js 15 App Router – `src/app/**/page.tsx` is a Server Component that fetches data and passes it to child components
+
+## 0. Scope
+
+This rule applies to **all files** that match:
+
+- `src/app/**/page.tsx`
+
+Whenever Cursor/AI creates or edits these files, it **MUST** follow the rules below.
+
+---
+
+## 1. `page.tsx` must always be a Server Component
+
+**REQUIRED:**
+
+1. Do **not** add `"use client"` to any `page.tsx`.
+2. Do **not** use React client hooks in `page.tsx`, such as:
+   - `useState`, `useEffect`, `useMemo`, `useCallback`, `useRef`, `useReducer`, etc.
+3. `page.tsx` **may and should** be `async` when data fetching is needed:
+   - `export default async function Page(...) { ... }`
+4. If any client-side logic is needed (state, events, forms, animations, etc.), it must be moved into **child components** placed under `src/components/**` that explicitly use `"use client"`.
+
+---
+
+## 2. Main responsibility of `page.tsx`
+
+Each `page.tsx` should only do three things:
+
+1. Receive `params` and/or `searchParams` from the Next.js App Router (if needed).
+2. Fetch data on the **server side**, for example:
+   - Call server helpers: `await getSomething()`
+   - Or call backend APIs via `fetch(...)`
+3. Pass the fetched data down to child components using **props**.
+
+`page.tsx` should **not** contain complex UI markup.  
+Detailed UI must live in components in `src/components/**`.
+
+---
+
+## 3. Link between `app` and `components`
+
+For each route folder in `src/app`, AI should prefer using components from a matching folder in `src/components`:
+
+- Route: `src/app/danh-muc-bai-viet-san-pham/page.tsx`  
+  → Use components from: `src/components/danh-muc-bai-viet-san-pham/*`
+
+- Route: `src/app/dich-vu/page.tsx`  
+  → Use components from: `src/components/dich-vu/*`
+
+In general:
+
+> **Folder in `app/` → use components with the same folder name in `components/` when available.**
+
+Example:
+
+```ts
+// src/app/danh-muc-bai-viet-san-pham/page.tsx
+import { getCategories } from '@/lib/api/categories';
+import { HeroSection } from '@/components/danh-muc-bai-viet-san-pham/HeroSection';
+import { CategoriesSection } from '@/components/danh-muc-bai-viet-san-pham/CategoriesSection';
+import { EmptyStateSection } from '@/components/danh-muc-bai-viet-san-pham/EmptyStateSection';
+
+export default async function Page() {
+  const categories = await getCategories();
+
+  if (!categories.length) {
+    return <EmptyStateSection />;
+  }
+
+  return (
+    <>
+      <HeroSection />
+      <CategoriesSection categories={categories} />
+    </>
+  );
+}

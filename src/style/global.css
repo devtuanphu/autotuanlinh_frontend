@@ -1,0 +1,611 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    @apply text-gray-900;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Range Slider Styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-track {
+  background: transparent;
+  height: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  margin-top: -9px;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-track {
+  background: transparent;
+  height: 2px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+}
+
+input[type="range"]::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+/* Swiper Custom Styles */
+.hero-swiper .swiper-pagination-bullet {
+  background: white;
+  opacity: 0.5;
+  width: 12px;
+  height: 12px;
+  transition: all 0.3s;
+}
+
+.hero-swiper .swiper-pagination-bullet-active {
+  opacity: 1;
+  background: #3D8F9E;
+  width: 32px;
+  border-radius: 6px;
+}
+
+/* Hide default Swiper navigation buttons */
+.hero-swiper .swiper-button-next,
+.hero-swiper .swiper-button-prev,
+.featured-products-swiper .swiper-button-next,
+.featured-products-swiper .swiper-button-prev,
+.testimonials-swiper .swiper-button-next,
+.testimonials-swiper .swiper-button-prev {
+  display: none !important;
+}
+
+/* Hero Swiper Navigation - Elegant & Professional */
+.hero-swiper .swiper-button-next,
+.hero-swiper .swiper-button-prev {
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  margin-top: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.85;
+}
+
+.hero-swiper:hover .swiper-button-next,
+.hero-swiper:hover .swiper-button-prev {
+  opacity: 1;
+}
+
+.hero-swiper .swiper-button-next:hover,
+.hero-swiper .swiper-button-prev:hover {
+  background: rgba(61, 143, 158, 0.95);
+  border-color: rgba(61, 143, 158, 0.6);
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 24px rgba(61, 143, 158, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  opacity: 1;
+}
+
+.hero-swiper .swiper-button-next:active,
+.hero-swiper .swiper-button-prev:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.hero-swiper .swiper-button-next::after,
+.hero-swiper .swiper-button-prev::after {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.hero-swiper .swiper-button-prev {
+  left: 24px;
+}
+
+.hero-swiper .swiper-button-next {
+  right: 24px;
+}
+
+/* Featured Products Swiper Navigation - Refined Design */
+.featured-products-swiper {
+  position: relative;
+  padding: 0 60px;
+}
+
+.featured-products-swiper .swiper-button-next,
+.featured-products-swiper .swiper-button-prev {
+  color: #3D8F9E;
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(61, 143, 158, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.9;
+}
+
+.featured-products-swiper:hover .swiper-button-next,
+.featured-products-swiper:hover .swiper-button-prev {
+  opacity: 1;
+}
+
+.featured-products-swiper .swiper-button-next:hover,
+.featured-products-swiper .swiper-button-prev:hover {
+  background: linear-gradient(135deg, #3D8F9E 0%, #4DAFBE 100%);
+  color: white;
+  border-color: #3D8F9E;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 20px rgba(61, 143, 158, 0.3), 0 2px 8px rgba(61, 143, 158, 0.2);
+  opacity: 1;
+}
+
+.featured-products-swiper .swiper-button-next:active,
+.featured-products-swiper .swiper-button-prev:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.featured-products-swiper .swiper-button-next::after,
+.featured-products-swiper .swiper-button-prev::after {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.3px;
+}
+
+.featured-products-swiper .swiper-button-prev {
+  left: 0;
+}
+
+.featured-products-swiper .swiper-button-next {
+  right: 0;
+}
+
+/* Testimonials Swiper Navigation - Sophisticated Design */
+.testimonials-swiper {
+  position: relative;
+  padding: 0 60px;
+}
+
+.testimonials-swiper .swiper-button-next,
+.testimonials-swiper .swiper-button-prev {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  margin-top: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.85;
+}
+
+.testimonials-swiper:hover .swiper-button-next,
+.testimonials-swiper:hover .swiper-button-prev {
+  opacity: 1;
+}
+
+.testimonials-swiper .swiper-button-next:hover,
+.testimonials-swiper .swiper-button-prev:hover {
+  background: rgba(61, 143, 158, 0.95);
+  border-color: rgba(61, 143, 158, 0.6);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 24px rgba(61, 143, 158, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  opacity: 1;
+}
+
+.testimonials-swiper .swiper-button-next:active,
+.testimonials-swiper .swiper-button-prev:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.testimonials-swiper .swiper-button-next::after,
+.testimonials-swiper .swiper-button-prev::after {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.3px;
+}
+
+.testimonials-swiper .swiper-button-prev {
+  left: 0;
+}
+
+.testimonials-swiper .swiper-button-next {
+  right: 0;
+}
+
+/* Disable navigation when swiper is disabled */
+.swiper-button-disabled {
+  opacity: 0.25 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.9) !important;
+}
+
+/* Smooth fade-in animation for buttons */
+@keyframes fadeInButton {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+  }
+  to {
+    opacity: 0.85;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+.hero-swiper .swiper-button-next,
+.hero-swiper .swiper-button-prev,
+.featured-products-swiper .swiper-button-next,
+.featured-products-swiper .swiper-button-prev,
+.testimonials-swiper .swiper-button-next,
+.testimonials-swiper .swiper-button-prev {
+  animation: fadeInButton 0.4s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .featured-products-swiper,
+  .testimonials-swiper {
+    padding: 0 20px;
+  }
+  
+  .featured-products-swiper .swiper-button-next,
+  .featured-products-swiper .swiper-button-prev,
+  .testimonials-swiper .swiper-button-next,
+  .testimonials-swiper .swiper-button-prev {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-swiper .swiper-button-next,
+  .hero-swiper .swiper-button-prev {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .hero-swiper .swiper-button-next::after,
+  .hero-swiper .swiper-button-prev::after {
+    font-size: 16px;
+  }
+  
+  .hero-swiper .swiper-button-prev {
+    left: 12px;
+  }
+  
+  .hero-swiper .swiper-button-next {
+    right: 12px;
+  }
+  
+  .featured-products-swiper .swiper-button-next,
+  .featured-products-swiper .swiper-button-prev,
+  .testimonials-swiper .swiper-button-next,
+  .testimonials-swiper .swiper-button-prev {
+    display: none;
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Enhanced animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search Dropdown Animation - Trượt từ trên xuống */
+@keyframes slideDownCenter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-dropdown {
+  animation: slideDownCenter 0.3s ease-out;
+}
+
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-left-infinite {
+  animation: scrollLeft 30s linear infinite;
+}
+
+/* Slide in from left animation for mobile drawer */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #172122;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #172122;
+}
+
+/* Scrollbar none utility */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Better focus styles */
+*:focus-visible {
+  outline: 2px solid #3D8F9E;
+  outline-offset: 2px;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #3D8F9E 0%, #4DAFBE 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Product Image Gallery Swiper */
+.product-main-swiper {
+  position: relative;
+}
+
+.product-main-swiper .swiper-button-next,
+.product-main-swiper .swiper-button-prev {
+  color: #3D8F9E;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(61, 143, 158, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+}
+
+.product-main-swiper:hover .swiper-button-next,
+.product-main-swiper:hover .swiper-button-prev {
+  opacity: 1;
+}
+
+.product-main-swiper .swiper-button-next:hover,
+.product-main-swiper .swiper-button-prev:hover {
+  background: #3D8F9E;
+  color: white;
+  border-color: #3D8F9E;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 20px rgba(61, 143, 158, 0.3);
+}
+
+.product-main-swiper .swiper-button-next:active,
+.product-main-swiper .swiper-button-prev:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.product-main-swiper .swiper-button-next::after,
+.product-main-swiper .swiper-button-prev::after {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.product-main-swiper .swiper-button-prev {
+  left: 16px;
+}
+
+.product-main-swiper .swiper-button-next {
+  right: 16px;
+}
+
+/* Product Thumbnail Swiper */
+.product-thumbs-swiper {
+  margin-top: 16px;
+}
+
+.product-thumb-slide {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.product-thumb-slide:hover {
+  border-color: #3D8F9E !important;
+  transform: scale(1.05);
+}
+
+/* Active thumbnail state */
+.product-thumbs-swiper .swiper-slide-thumb-active .product-thumb-slide {
+  border-color: #3D8F9E !important;
+  border-width: 2px;
+  box-shadow: 0 0 0 2px rgba(61, 143, 158, 0.2);
+}
+
+/* Responsive adjustments for product gallery */
+@media (max-width: 768px) {
+  .product-main-swiper .swiper-button-next,
+  .product-main-swiper .swiper-button-prev {
+    width: 40px;
+    height: 40px;
+    opacity: 0.8;
+  }
+
+  .product-main-swiper .swiper-button-prev {
+    left: 8px;
+  }
+
+  .product-main-swiper .swiper-button-next {
+    right: 8px;
+  }
+
+  .product-thumbs-swiper {
+    margin-top: 12px;
+  }
+}
+
+/* Filter Sidebar - Remove right border */
+.filter-sidebar {
+  border-right: none !important;
+}
+
+
