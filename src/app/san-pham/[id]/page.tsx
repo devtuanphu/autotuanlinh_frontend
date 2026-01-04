@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { generateMetadata as generateSEOMetadata, seoData } from '@/lib/seo';
 import ProductListLayout from '@/components/shared/ProductListLayout';
 import ProductCategoryDetailSections from '@/components/san-pham/ProductCategoryDetailSections';
@@ -69,7 +70,20 @@ export default async function Page({ params }: PageProps) {
       showBreadcrumb={true}
       bannerImage={bannerImage}
     >
-      <ProductCategoryDetailSections categoryDetail={categoryDetail} />
+      <Suspense
+        fallback={
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-200 rounded mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-96 bg-gray-200 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
+        }
+      >
+        <ProductCategoryDetailSections categoryDetail={categoryDetail} />
+      </Suspense>
     </ProductListLayout>
   );
 }
