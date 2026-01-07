@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { BadgeCheck, Shield, Award, Star, LucideIcon } from 'lucide-react';
+import { BadgeCheck, Shield, Award, Star, CheckCircle, LucideIcon } from 'lucide-react';
 import { Certification } from '@/lib/data/ve-chung-toi';
 
 interface CertificationsSectionProps {
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  subtitle?: string;
   certifications: Certification[];
 }
 
@@ -13,9 +17,16 @@ const iconMap: Record<string, LucideIcon> = {
   Shield,
   Award,
   Star,
+  CheckCircle,
 };
 
-export default function CertificationsSection({ certifications }: CertificationsSectionProps) {
+export default function CertificationsSection({ 
+  badge = 'Chứng nhận',
+  title = 'Chứng nhận',
+  titleHighlight = 'và giải thưởng',
+  subtitle = 'Những chứng nhận và giải thưởng chúng tôi đạt được',
+  certifications 
+}: CertificationsSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 

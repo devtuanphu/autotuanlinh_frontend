@@ -6,10 +6,16 @@ import { Settings } from 'lucide-react';
 import { ProcessStep } from '@/lib/data/ve-chung-toi';
 
 interface ProcessSectionProps {
+  title?: string;
+  subtitle?: string;
   processSteps: ProcessStep[];
 }
 
-export default function ProcessSection({ processSteps }: ProcessSectionProps) {
+export default function ProcessSection({ 
+  title = 'Quy trình',
+  subtitle = 'Quy trình chuyên nghiệp, đảm bảo chất lượng từng bước',
+  processSteps 
+}: ProcessSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -44,11 +50,13 @@ export default function ProcessSection({ processSteps }: ProcessSectionProps) {
               <span>Quy trình</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 sm:mb-4">
-              Quy trình <span className="text-brand-accent">làm việc</span>
+              {title}
             </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-              Quy trình chuyên nghiệp, đảm bảo chất lượng từng bước
-            </p>
+            {subtitle && (
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">

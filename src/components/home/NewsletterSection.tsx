@@ -1,33 +1,56 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Send, CheckCircle } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { subscribeNewsletter } from '@/lib/api/strapi';
 
 interface NewsletterSectionProps {
   title?: string;
-  description?: string;
+  subtitle?: string;
+  description?: string; // Keep for backward compatibility
+  buttonText?: string;
+  privacyText?: string;
+  icon?: string | null;
 }
 
 export default function NewsletterSection({
   title = 'Đăng ký nhận tin',
-  description = 'Nhận thông tin về sản phẩm mới, khuyến mãi đặc biệt và mẹo chăm sóc xe hữu ích',
+  subtitle,
+  description,
+  buttonText = 'Đăng ký',
+  privacyText,
+  icon,
 }: NewsletterSectionProps) {
+  const defaultDescription = 'Nhận thông tin về sản phẩm mới, khuyến mãi đặc biệt và mẹo chăm sóc xe hữu ích';
+  const defaultPrivacyText = 'Chúng tôi cam kết bảo vệ thông tin của bạn. Bạn có thể hủy đăng ký bất cứ lúc nào.';
+  
+  const finalDescription = subtitle || description || defaultDescription;
+  const finalPrivacyText = privacyText || defaultPrivacyText;
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsSubmitting(true);
     
-    // TODO: Integrate with API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    setEmail('');
-    
-    setTimeout(() => setIsSuccess(false), 3000);
+    try {
+      const result = await subscribeNewsletter(email);
+      
+      if (result.success) {
+        setIsSuccess(true);
+        setEmail('');
+        setTimeout(() => setIsSuccess(false), 5000);
+      } else {
+        setError(result.message || 'Có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.');
+      }
+    } catch (err) {
+      setError('Có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -41,7 +64,7 @@ export default function NewsletterSection({
             {title}
           </h2>
           <p className="text-lg lg:text-xl text-gray-300 mb-8">
-            {description}
+            {finalDescription}
           </p>
 
           <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
@@ -70,20 +93,27 @@ export default function NewsletterSection({
                 ) : (
                   <>
                     <Send size={20} />
-                    {isSubmitting ? 'Đang gửi...' : 'Đăng ký'}
+                    {isSubmitting ? 'Đang gửi...' : buttonText}
                   </>
                 )}
               </button>
             </div>
             {isSuccess && (
-              <p className="mt-4 text-green-400 text-sm">
+              <p className="mt-4 text-green-400 text-sm flex items-center justify-center gap-2">
+                <CheckCircle size={16} />
                 Cảm ơn bạn đã đăng ký! Chúng tôi sẽ gửi email cho bạn sớm nhất.
+              </p>
+            )}
+            {error && (
+              <p className="mt-4 text-red-400 text-sm flex items-center justify-center gap-2">
+                <AlertCircle size={16} />
+                {error}
               </p>
             )}
           </form>
 
-          <p className="mt-6 text-sm text-gray-400">
-            Chúng tôi cam kết bảo vệ thông tin của bạn. Bạn có thể hủy đăng ký bất cứ lúc nào.
+          <p className="mt-6 text-sm text-gray-400 whitespace-pre-line">
+            {finalPrivacyText}
           </p>
         </div>
       </div>

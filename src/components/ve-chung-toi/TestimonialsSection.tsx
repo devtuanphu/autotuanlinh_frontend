@@ -5,10 +5,16 @@ import { Quote, Star } from 'lucide-react';
 import { Testimonial } from '@/lib/data/ve-chung-toi';
 
 interface TestimonialsSectionProps {
+  title?: string;
+  subtitle?: string;
   testimonials: Testimonial[];
 }
 
-export default function TestimonialsSection({ testimonials }: TestimonialsSectionProps) {
+export default function TestimonialsSection({ 
+  title = 'Phản hồi từ',
+  subtitle = 'Những đánh giá chân thực từ khách hàng đã sử dụng dịch vụ',
+  testimonials 
+}: TestimonialsSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -50,11 +56,13 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
               <span>Khách hàng nói gì</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4">
-              Phản hồi từ <span className="text-brand-accent">khách hàng</span>
+              {title}
             </h2>
-            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-4">
-              Những đánh giá chân thực từ khách hàng đã sử dụng dịch vụ
-            </p>
+            {subtitle && (
+              <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-4">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">

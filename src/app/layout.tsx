@@ -104,10 +104,10 @@ export default function RootLayout({
           showAtBottom={false}
         />
         <CartProvider>
-          <Header />
-          <HeaderMobile />
+        <Header />
+        <HeaderMobile />
           {children}
-          <Footer />
+        <Footer />
         </CartProvider>
       </body>
     </html>

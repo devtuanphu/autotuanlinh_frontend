@@ -9,11 +9,16 @@ export interface FAQ {
 }
 
 interface FAQSectionProps {
+  title?: string;
+  subtitle?: string;
   faqs: FAQ[];
 }
 
-export default function FAQSection({ faqs }: FAQSectionProps) {
+export default function FAQSection({ title, subtitle, faqs }: FAQSectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  
+  const defaultTitle = 'Câu hỏi thường gặp';
+  const defaultSubtitle = 'Giải đáp những thắc mắc phổ biến của khách hàng';
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -27,10 +32,10 @@ export default function FAQSection({ faqs }: FAQSectionProps) {
             <HelpCircle size={32} className="text-brand-accent" />
           </div>
           <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-            Câu hỏi <span className="text-brand-accent">thường gặp</span>
+            {title || defaultTitle}
           </h2>
           <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
-            Giải đáp những thắc mắc phổ biến của khách hàng
+            {subtitle || defaultSubtitle}
           </p>
         </div>
 

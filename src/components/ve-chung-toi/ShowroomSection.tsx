@@ -4,7 +4,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Store } from 'lucide-react';
 
-export default function ShowroomSection() {
+interface ShowroomCard {
+  title: string;
+  subtitle: string;
+  image: string;
+}
+
+interface ShowroomSectionProps {
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  subtitle?: string;
+  showroomCards: ShowroomCard[];
+}
+
+export default function ShowroomSection({ 
+  badge = 'Showroom',
+  title = 'Không gian',
+  titleHighlight = 'showroom',
+  subtitle = 'Không gian trưng bày hiện đại, chuyên nghiệp',
+  showroomCards 
+}: ShowroomSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -29,11 +49,6 @@ export default function ShowroomSection() {
     };
   }, []);
 
-  const showrooms = [
-    { url: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop', title: 'Showroom chính' },
-    { url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=600&fit=crop', title: 'Khu trưng bày' },
-    { url: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&h=600&fit=crop', title: 'Phòng tư vấn' },
-  ];
 
   return (
     <section className="py-16 sm:py-20 lg:py-32 bg-gradient-to-b from-white via-gray-50/50 to-white">
@@ -42,18 +57,23 @@ export default function ShowroomSection() {
           <div className="text-center mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-brand-accent/10 text-brand-accent rounded-full text-xs sm:text-sm font-bold mb-4 sm:mb-6">
               <Store size={14} className="sm:w-4 sm:h-4" />
-              <span>Showroom</span>
+              <span>{badge}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 sm:mb-4">
-              Không gian <span className="text-brand-accent">showroom</span>
+              {title}
+              {titleHighlight && (
+                <span className="text-brand-accent"> {titleHighlight}</span>
+              )}
             </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-              Không gian trưng bày hiện đại, chuyên nghiệp
-            </p>
+            {subtitle && (
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {showrooms.map((item, index) => (
+            {showroomCards.map((card, index) => (
               <div
                 key={index}
                 data-animate
@@ -62,15 +82,17 @@ export default function ShowroomSection() {
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
                 <Image
-                  src={item.url}
-                  alt={item.title}
+                  src={card.image}
+                  alt={card.title}
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{item.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-200">Không gian trưng bày hiện đại</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{card.title}</h3>
+                  {card.subtitle && (
+                    <p className="text-sm sm:text-base text-gray-200">{card.subtitle}</p>
+                  )}
                 </div>
               </div>
             ))}

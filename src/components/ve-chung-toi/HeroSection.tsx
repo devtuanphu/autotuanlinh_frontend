@@ -4,12 +4,26 @@ import React from 'react';
 import Image from 'next/image';
 import { Building2 } from 'lucide-react';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  title?: string;
+  specialTitle?: string;
+  subtitle?: string;
+  description?: string;
+  imageUrl?: string;
+}
+
+export default function HeroSection({ 
+  title = 'Auto Tuan Linh',
+  specialTitle = 'Đồng hành cùng bạn',
+  subtitle = '',
+  description = 'Hơn 15 năm kinh nghiệm trong lĩnh vực phụ kiện ô tô, chúng tôi tự hào là địa chỉ tin cậy của hàng nghìn khách hàng trên toàn quốc.',
+  imageUrl = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&h=1080&fit=crop',
+}: HeroSectionProps) {
   return (
     <section className="relative h-[500px] sm:h-[600px] lg:h-[700px] overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&h=1080&fit=crop"
+          src={imageUrl}
           alt="Về chúng tôi"
           fill
           className="object-cover"
@@ -30,15 +44,19 @@ export default function HeroSection() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 sm:mb-6 leading-tight text-white drop-shadow-2xl">
-            Auto Tuan Linh
-            <span className="block mt-2 sm:mt-4 text-brand-accent drop-shadow-lg">
-              Đồng hành cùng bạn
-            </span>
+            {title}
+            {specialTitle && (
+              <span className="block mt-2 sm:mt-4 text-brand-accent drop-shadow-lg">
+                {specialTitle}
+              </span>
+            )}
           </h1>
 
-          <p className="text-base sm:text-xl md:text-2xl text-gray-100 leading-relaxed mb-6 sm:mb-8 max-w-3xl drop-shadow-lg">
-            Hơn 15 năm kinh nghiệm trong lĩnh vực phụ kiện ô tô, chúng tôi tự hào là địa chỉ tin cậy của hàng nghìn khách hàng trên toàn quốc.
-          </p>
+          {(subtitle || description) && (
+            <p className="text-base sm:text-xl md:text-2xl text-gray-100 leading-relaxed mb-6 sm:mb-8 max-w-3xl drop-shadow-lg">
+              {subtitle || description}
+            </p>
+          )}
         </div>
       </div>
     </section>

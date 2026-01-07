@@ -6,10 +6,20 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { BeforeAfter } from '@/lib/data/ve-chung-toi';
 
 interface BeforeAfterSectionProps {
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  subtitle?: string;
   beforeAfter: BeforeAfter[];
 }
 
-export default function BeforeAfterSection({ beforeAfter }: BeforeAfterSectionProps) {
+export default function BeforeAfterSection({ 
+  badge = 'Kết quả',
+  title = 'Trước &',
+  titleHighlight = 'Sau',
+  subtitle = 'Những dự án đã hoàn thành của chúng tôi',
+  beforeAfter 
+}: BeforeAfterSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -41,14 +51,19 @@ export default function BeforeAfterSection({ beforeAfter }: BeforeAfterSectionPr
           <div className="text-center mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-brand-accent/10 text-brand-accent rounded-full text-xs sm:text-sm font-bold mb-4 sm:mb-6">
               <Sparkles size={14} className="sm:w-4 sm:h-4" />
-              <span>Kết quả</span>
+              <span>{badge}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 sm:mb-4">
-              Trước & <span className="text-brand-accent">Sau</span>
+              {title}
+              {titleHighlight && (
+                <span className="text-brand-accent"> {titleHighlight}</span>
+              )}
             </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-              Những dự án đã hoàn thành của chúng tôi
-            </p>
+            {subtitle && (
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">

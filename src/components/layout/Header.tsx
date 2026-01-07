@@ -11,13 +11,49 @@ import {
   ChevronUp,
   MapPin,
   Package,
-  Grid3x3
+  Grid3x3,
+  Car,
+  Wrench,
+  Settings,
+  Film,
+  Music,
+  Sparkles,
+  type LucideIcon,
 } from 'lucide-react';
-import { menuItems, productCategories, megaMenuData, trendingSearches } from './constants/headerData';
+import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData, trendingSearches } from './constants/headerData';
 import { useCart } from '@/contexts/CartContext';
+
+// Icon mapping
+const iconMap: Record<string, LucideIcon> = {
+  Car,
+  Wrench,
+  Settings,
+  Film,
+  Music,
+  Sparkles,
+};
+
+// Helper to get icon from category name
+const getIconFromCategory = (category: string): LucideIcon => {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower.includes('ngoại thất') || categoryLower.includes('ngoai that')) {
+    return Sparkles;
+  } else if (categoryLower.includes('đồ chơi') || categoryLower.includes('do choi')) {
+    return Settings;
+  } else if (categoryLower.includes('bảo dưỡng') || categoryLower.includes('bao duong')) {
+    return Wrench;
+  } else if (categoryLower.includes('phim') || categoryLower.includes('dán')) {
+    return Film;
+  } else if (categoryLower.includes('âm thanh') || categoryLower.includes('am thanh')) {
+    return Music;
+  }
+  return Car;
+};
 
 const Header = () => {
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  const [megaMenuData, setMegaMenuData] = useState(defaultMegaMenuData);
+  const [productCategories, setProductCategories] = useState(defaultProductCategories);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,6 +210,126 @@ const Header = () => {
       document.body.style.overflow = '';
     };
   }, [isCategoryMenuOpen, isSearchDropdownOpen]);
+
+  // Fetch header data from API
+  useEffect(() => {
+    const fetchHeaderData = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+        const apiToken = process.env.NEXT_PUBLIC_STRAPI_KEY || '';
+        
+        const response = await fetch(`${apiUrl}/api/header?pLevel`, {
+          headers: {
+            'Authorization': `Bearer ${apiToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch header data');
+        }
+
+        const data = await response.json();
+        
+        if (data && typeof data === 'object') {
+          // Map danh-muc-bai-san-pham to megaMenuData for "Sản phẩm" menu
+          if (data['danh-muc-bai-san-pham'] && Array.isArray(data['danh-muc-bai-san-pham'])) {
+            const columns = (data['danh-muc-bai-san-pham'] as Array<{
+              category: string;
+              subcategory: Array<{
+                title: string;
+                slug: string;
+              }>;
+            }>).map((cat) => {
+              return {
+                title: cat.category,
+                icon: getIconFromCategory(cat.category),
+                items: cat.subcategory.map((sub) => ({
+                  name: sub.title,
+                  href: `/danh-muc-bai-viet-san-pham/${sub.slug}`,
+                })),
+              };
+            });
+            
+            setMegaMenuData(prev => ({
+              ...prev,
+              'danh-muc-bai-viet-san-pham': {
+                title: 'Sản phẩm',
+                columns,
+              },
+            }));
+          }
+
+          // Map danh-muc-bai-dich-vu to megaMenuData for "Dịch vụ" menu
+          if (data['danh-muc-bai-dich-vu'] && Array.isArray(data['danh-muc-bai-dich-vu'])) {
+            const columns = (data['danh-muc-bai-dich-vu'] as Array<{
+              category: string;
+              subcategory: Array<{
+                title: string;
+                slug: string;
+              }>;
+            }>).map((cat) => {
+              return {
+                title: cat.category,
+                icon: getIconFromCategory(cat.category),
+                items: cat.subcategory.map((sub) => ({
+                  name: sub.title,
+                  href: `/dich-vu/${sub.slug}`,
+                })),
+              };
+            });
+            
+            setMegaMenuData(prev => ({
+              ...prev,
+              'dich-vu': {
+                title: 'Dịch vụ',
+                columns,
+              },
+            }));
+          }
+
+          // Map danh-muc-san-pham to productCategories for "Danh mục sản phẩm" menu
+          if (data['danh-muc-san-pham'] && Array.isArray(data['danh-muc-san-pham'])) {
+            const categories = (data['danh-muc-san-pham'] as Array<{
+              category: string;
+              subcategory: Array<{
+                title: string;
+                slug: string;
+                subcategory?: Array<{
+                  title: string;
+                  slug: string;
+                }>;
+              }>;
+            }>).map((cat) => {
+              return {
+                id: cat.category.toLowerCase().replace(/\s+/g, '-'),
+                name: cat.category,
+                icon: getIconFromCategory(cat.category),
+                href: `/san-pham/${cat.category.toLowerCase().replace(/\s+/g, '-')}`,
+                children: cat.subcategory.map((sub) => ({
+                  id: sub.slug,
+                  name: sub.title,
+                  children: sub.subcategory ? sub.subcategory.map((subSub) => ({
+                    name: subSub.title,
+                    href: `/san-pham/${subSub.slug}`,
+                  })) : [],
+                })),
+              };
+            });
+            
+            setProductCategories(categories);
+          }
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Header] Failed to fetch header data, using defaults:', error);
+        }
+        // Use default data if fetch fails
+      }
+    };
+
+    fetchHeaderData();
+  }, []);
 
 
   const handleSearch = (e: React.FormEvent) => {
@@ -574,7 +730,7 @@ const Header = () => {
               >
                 <div className="py-3 px-2">
                   <ul className="space-y-0.5">
-                    {productCategories.map((category) => {
+                    {productCategories.map((category: typeof defaultProductCategories[0]) => {
                       const Icon = category.icon;
                       const isHovered = hoveredCategory === category.id;
                       return (
@@ -607,7 +763,7 @@ const Header = () => {
                 >
                   <div className="py-4 px-6">
                     {(() => {
-                      const category = productCategories.find(c => c.id === hoveredCategory);
+                      const category = productCategories.find((c: typeof defaultProductCategories[0]) => c.id === hoveredCategory);
                       if (!category) {
                         return null;
                       }
@@ -620,13 +776,13 @@ const Header = () => {
                       
                       return (
                         <div className="grid grid-cols-3 gap-6">
-                          {validCategory.children.map((child1) => (
+                          {validCategory.children.map((child1: typeof validCategory.children[0]) => (
                             <div key={child1.id}>
                               <h3 className="font-bold text-gray-900 text-sm mb-3 pb-2 border-b border-gray-200">
                                 {child1.name}
                               </h3>
                               <ul className="space-y-2">
-                                {child1.children.map((child2, index) => (
+                                {child1.children.map((child2: typeof child1.children[0], index: number) => (
                                   <li key={index}>
                                     <Link
                                       href={child2.href}

@@ -12,10 +12,24 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
+interface HeroSlide {
+  id: number | string;
+  image: string;
+  title: string;
+  subtitle?: string;
+  specialTitle?: string;
+  description: string;
+  cta?: string;
+  href: string;
+}
 
+interface HeroSliderProps {
+  slides?: HeroSlide[];
+}
 
-const HeroSlider = () => {
-  const slides = [
+const HeroSlider = ({ slides: propSlides }: HeroSliderProps) => {
+  // Fallback slides if no data from Strapi
+  const defaultSlides: HeroSlide[] = [
     {
       id: 1,
       image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&q=80',
@@ -44,6 +58,8 @@ const HeroSlider = () => {
       href: '/san-pham',
     },
   ];
+
+  const slides = propSlides && propSlides.length > 0 ? propSlides : defaultSlides;
 
   return (
     <Swiper
@@ -84,27 +100,33 @@ const HeroSlider = () => {
           </div>
           <div className="container mx-auto px-4 h-full relative z-10 flex items-start pt-8">
             <div className="max-w-3xl animate-fade-in mt-8">
-              <div className="inline-flex items-center gap-2 bg-brand-accent/20 backdrop-blur-sm border border-brand-accent/30 text-brand-accent px-4 py-2 rounded-full mb-6">
-                <Sparkles size={16} />
-                <span className="text-sm font-semibold">Chất lượng hàng đầu</span>
-              </div>
+              {(slide.specialTitle || slide.subtitle) && (
+                <div className="inline-flex items-center gap-2 bg-brand-accent/20 backdrop-blur-sm border border-brand-accent/30 text-brand-accent px-4 py-2 rounded-full mb-6">
+                  <Sparkles size={16} />
+                  <span className="text-sm font-semibold">{slide.specialTitle || slide.subtitle}</span>
+                </div>
+              )}
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-[1.1] text-white drop-shadow-2xl">
                 {slide.title}
-                <span className="block text-brand-accent mt-2 bg-gradient-to-r from-brand-accent to-brand-accent-light bg-clip-text text-transparent">
-                  {slide.subtitle}
-                </span>
+                {slide.subtitle && (
+                  <span className="block text-brand-accent mt-2 bg-gradient-to-r from-brand-accent to-brand-accent-light bg-clip-text text-transparent">
+                    {slide.subtitle}
+                  </span>
+                )}
               </h1>
               <p className="text-xl md:text-2xl text-gray-100 mb-10 leading-relaxed drop-shadow-lg max-w-2xl">
                 {slide.description}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href={slide.href}
-                  className="group inline-flex items-center justify-center gap-3 bg-brand-accent hover:bg-brand-accent-dark text-white px-10 py-5 rounded-xl font-bold text-lg transition-all duration-300 shadow-2xl hover:shadow-brand-accent/50 hover:scale-105 hover:-translate-y-1"
-                >
-                  {slide.cta}
-                  <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
+                {slide.href && (
+                  <Link
+                    href={slide.href}
+                    className="group inline-flex items-center justify-center gap-3 bg-brand-accent hover:bg-brand-accent-dark text-white px-10 py-5 rounded-xl font-bold text-lg transition-all duration-300 shadow-2xl hover:shadow-brand-accent/50 hover:scale-105 hover:-translate-y-1"
+                  >
+                    {slide.cta || 'Xem thêm'}
+                    <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                )}
                 <Link
                   href="/lien-he"
                   className="inline-flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md hover:bg-white/20 border-2 border-white/30 text-white px-10 py-5 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"

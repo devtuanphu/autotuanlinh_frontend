@@ -6,10 +6,20 @@ import { Users } from 'lucide-react';
 import { TeamMember } from '@/lib/data/ve-chung-toi';
 
 interface TeamSectionProps {
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  subtitle?: string;
   teamMembers: TeamMember[];
 }
 
-export default function TeamSection({ teamMembers }: TeamSectionProps) {
+export default function TeamSection({ 
+  badge = 'Đội ngũ',
+  title = 'Đội ngũ',
+  titleHighlight = 'chuyên nghiệp',
+  subtitle = 'Những con người tạo nên sự khác biệt',
+  teamMembers 
+}: TeamSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -41,14 +51,19 @@ export default function TeamSection({ teamMembers }: TeamSectionProps) {
           <div className="text-center mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-brand-accent/10 text-brand-accent rounded-full text-xs sm:text-sm font-bold mb-4 sm:mb-6">
               <Users size={14} className="sm:w-4 sm:h-4" />
-              <span>Đội ngũ</span>
+              <span>{badge}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 sm:mb-4">
-              Đội ngũ <span className="text-brand-accent">chuyên nghiệp</span>
+              {title}
+              {titleHighlight && (
+                <span className="text-brand-accent"> {titleHighlight}</span>
+              )}
             </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-              Những con người tạo nên sự khác biệt
-            </p>
+            {subtitle && (
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">

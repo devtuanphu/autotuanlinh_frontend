@@ -7,6 +7,7 @@
 export const STRAPI_ENDPOINTS = {
   // Single Types
   home: '/home',
+  veChungToi: '/ve-chung-toi',
   
   // Collection Types (add more as needed)
   // products: '/products',

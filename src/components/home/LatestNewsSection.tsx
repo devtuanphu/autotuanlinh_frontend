@@ -7,10 +7,32 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { NewsArticle } from '@/lib/data/articles';
 
 interface LatestNewsSectionProps {
+  title?: string;
+  subtitle?: string;
+  viewAllButton?: {
+    text: string;
+    href: string;
+  };
   articles: NewsArticle[];
 }
 
-export default function LatestNewsSection({ articles }: LatestNewsSectionProps) {
+export default function LatestNewsSection({ 
+  title, 
+  subtitle, 
+  viewAllButton,
+  articles 
+}: LatestNewsSectionProps) {
+  const defaultTitle = 'Tin tức mới nhất';
+  const defaultSubtitle = 'Cập nhật những thông tin hữu ích về phụ kiện ô tô';
+  const defaultViewAllButton = {
+    text: 'Xem tất cả',
+    href: '/tin-tuc',
+  };
+  
+  const finalTitle = title || defaultTitle;
+  const finalSubtitle = subtitle || defaultSubtitle;
+  const finalViewAllButton = viewAllButton || defaultViewAllButton;
+  
   const latestArticles = articles.slice(0, 3);
 
   return (
@@ -19,17 +41,24 @@ export default function LatestNewsSection({ articles }: LatestNewsSectionProps) 
         <div className="flex items-center justify-between mb-12 lg:mb-16">
           <div>
             <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-              Tin tức <span className="text-brand-accent">mới nhất</span>
+              {finalTitle.includes('mới nhất') ? (
+                <>
+                  {finalTitle.split('mới nhất')[0]}
+                  <span className="text-brand-accent">mới nhất</span>
+                </>
+              ) : (
+                finalTitle
+              )}
             </h2>
             <p className="text-lg lg:text-xl text-gray-600">
-              Cập nhật những thông tin hữu ích về phụ kiện ô tô
+              {finalSubtitle}
             </p>
           </div>
           <Link
-            href="/tin-tuc"
+            href={finalViewAllButton.href}
             className="hidden lg:flex items-center gap-2 px-6 py-3 bg-brand-accent text-white rounded-xl font-bold hover:bg-brand-accent-dark transition-all"
           >
-            Xem tất cả
+            {finalViewAllButton.text}
             <ArrowRight size={20} />
           </Link>
         </div>
@@ -91,10 +120,10 @@ export default function LatestNewsSection({ articles }: LatestNewsSectionProps) 
 
         <div className="mt-8 text-center lg:hidden">
           <Link
-            href="/tin-tuc"
+            href={finalViewAllButton.href}
             className="inline-flex items-center gap-2 px-6 py-3 bg-brand-accent text-white rounded-xl font-bold hover:bg-brand-accent-dark transition-all"
           >
-            Xem tất cả tin tức
+            {finalViewAllButton.text}
             <ArrowRight size={20} />
           </Link>
         </div>

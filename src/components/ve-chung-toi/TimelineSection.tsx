@@ -5,10 +5,20 @@ import { Calendar } from 'lucide-react';
 import { TimelineItem } from '@/lib/data/ve-chung-toi';
 
 interface TimelineSectionProps {
-  timeline: TimelineItem[];
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  subtitle?: string;
+  timeline: Array<TimelineItem & { position?: 'left' | 'right' }>;
 }
 
-export default function TimelineSection({ timeline }: TimelineSectionProps) {
+export default function TimelineSection({ 
+  badge = 'Hành trình',
+  title = 'Lịch sử',
+  titleHighlight = 'phát triển',
+  subtitle = 'Những cột mốc quan trọng trong hành trình của chúng tôi',
+  timeline 
+}: TimelineSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -54,12 +64,17 @@ export default function TimelineSection({ timeline }: TimelineSectionProps) {
             <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-accent to-brand-accent-dark transform -translate-x-1/2"></div>
 
             <div className="space-y-8 sm:space-y-12">
-              {timeline.map((item, index) => (
+              {timeline.map((item, index) => {
+                // Use position from item if available, otherwise alternate based on index
+                const position = (item as TimelineItem & { position?: 'left' | 'right' }).position || (index % 2 === 0 ? 'left' : 'right');
+                const isLeft = position === 'left';
+                
+                return (
                 <div
                   key={index}
                   data-animate
                   id={`timeline-${index}`}
-                  className={`relative flex flex-col md:flex-row items-center gap-6 sm:gap-8 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} ${isVisible.has(`timeline-${index}`) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}
+                  className={`relative flex flex-col md:flex-row items-center gap-6 sm:gap-8 ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'} ${isVisible.has(`timeline-${index}`) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}
                   style={{ transitionDelay: `${index * 150}ms` }}
                 >
                   <div className="flex-1 md:w-1/2 w-full">
@@ -78,7 +93,8 @@ export default function TimelineSection({ timeline }: TimelineSectionProps) {
 
                   <div className="flex-1 md:w-1/2 w-full"></div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         </div>

@@ -10,19 +10,24 @@ export interface Brand {
 }
 
 interface BrandsSectionProps {
+  title?: string;
+  subtitle?: string;
   brands: Brand[];
 }
 
-export default function BrandsSection({ brands }: BrandsSectionProps) {
+export default function BrandsSection({ title, subtitle, brands }: BrandsSectionProps) {
+  const defaultTitle = 'Thương hiệu đối tác';
+  const defaultSubtitle = 'Chúng tôi hợp tác với các thương hiệu hàng đầu thế giới';
+  
   return (
     <section className="py-16 lg:py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4">
-            Thương hiệu <span className="text-brand-accent">đối tác</span>
+            {title || defaultTitle}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Chúng tôi hợp tác với các thương hiệu hàng đầu thế giới
+            {subtitle || defaultSubtitle}
           </p>
         </div>
 

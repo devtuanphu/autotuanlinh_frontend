@@ -6,7 +6,7 @@
  */
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || process.env.STRAPI_URL || 'http://localhost:1337';
-const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
+const STRAPI_API_TOKEN = process.env.NEXT_PUBLIC_STRAPI_KEY || process.env.NEXT_PUBLIC_STRAPI_API_TOKEN || process.env.STRAPI_API_TOKEN;
 
 /**
  * Strapi API Response Types
@@ -63,7 +63,7 @@ export async function fetchStrapi<T = Record<string, unknown>>(
   if (populate) {
     params.append('populate', Array.isArray(populate) ? populate.join(',') : populate);
   }
-
+  
   // Filters
   Object.entries(filters).forEach(([key, value]) => {
     params.append(`filters[${key}]`, String(value));
@@ -85,7 +85,27 @@ export async function fetchStrapi<T = Record<string, unknown>>(
     params.append('fields', fields.join(','));
   }
 
-  const url = `${STRAPI_URL}/api${endpoint}?${params.toString()}`;
+  // Build URL with query params
+  // Check if endpoint already contains query params (e.g., '/footer-contact?pLevel')
+  const hasQueryParams = endpoint.includes('?');
+  const baseEndpoint = hasQueryParams ? endpoint.split('?')[0] : endpoint;
+  let url = `${STRAPI_URL}/api${endpoint}`;
+  
+  // Hardcode pLevel for specific endpoints
+  if (baseEndpoint === '/home' || baseEndpoint === '/footer-contact' || baseEndpoint === '/footer' || baseEndpoint === '/ve-chung-toi') {
+    if (!hasQueryParams) {
+      url += '?pLevel';
+    } else if (!endpoint.includes('pLevel')) {
+      url += '&pLevel';
+    }
+  }
+  
+  // Add other params
+  const otherParams = params.toString();
+  if (otherParams) {
+    const separator = url.includes('?') ? '&' : '?';
+    url += `${separator}${otherParams}`;
+  }
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -94,6 +114,8 @@ export async function fetchStrapi<T = Record<string, unknown>>(
     headers['Authorization'] = `Bearer ${STRAPI_API_TOKEN}`;
   }
 
+  console.log(`[Strapi] Fetching from: ${url}`); // Debug log
+  
   try {
     const response = await fetch(url, {
       headers,
@@ -106,9 +128,37 @@ export async function fetchStrapi<T = Record<string, unknown>>(
 
     const json: StrapiResponse<StrapiItem<T> | StrapiItem<T>[]> = await response.json();
     
-    // Handle Single Type (returns single object)
+    // Debug log for heroSlider
+    if (endpoint === '/home' && json.data && typeof json.data === 'object' && 'heroSlider' in json.data) {
+      const heroSlider = (json.data as { heroSlider?: unknown[] }).heroSlider;
+      console.log(`[Strapi] heroSlider count: ${heroSlider?.length || 0}`);
+    }
+    
+    // Debug log for footer-contact
+    if (endpoint === '/footer-contact' && process.env.NODE_ENV === 'development') {
+      console.log('[Strapi] Raw footer-contact response:', JSON.stringify(json, null, 2));
+    }
+    
+    // When using pLevel, Strapi returns data directly (not wrapped in attributes)
+    // Check if data has attributes (old format) or is already flat (pLevel format)
     if (!Array.isArray(json.data)) {
-      return transformStrapiItem(json.data) as T;
+      const data = json.data as unknown;
+      
+      // If it has attributes, it's the old format - transform it
+      if (data && typeof data === 'object' && 'attributes' in data && data.attributes) {
+        return transformStrapiItem(data as StrapiItem<T>) as T;
+      }
+      
+      // Otherwise, it's already flat (pLevel format) - just ensure id is string
+      if (data && typeof data === 'object' && 'id' in data) {
+        const transformed = { ...data, id: String((data as { id: unknown }).id) } as T;
+        if (endpoint === '/footer-contact' && process.env.NODE_ENV === 'development') {
+          console.log('[Strapi] Transformed footer-contact data:', transformed);
+        }
+        return transformed;
+      }
+      
+      return data as T;
     }
     
     // Handle Collection Type (returns array)
@@ -120,7 +170,7 @@ export async function fetchStrapi<T = Record<string, unknown>>(
 }
 
 /**
- * Strapi Image Type
+ * Strapi Image Type (can be nested in data.attributes or direct object)
  */
 interface StrapiImage {
   data?: {
@@ -128,15 +178,41 @@ interface StrapiImage {
       url?: string;
     };
   };
+  url?: string; // Direct URL (when populated)
+  formats?: {
+    large?: { url?: string };
+    medium?: { url?: string };
+    small?: { url?: string };
+    thumbnail?: { url?: string };
+  };
 }
 
 /**
  * Transform Strapi image object to URL string
+ * Handles both nested (data.attributes.url) and direct (url) formats
  */
 export function getStrapiImageUrl(image: StrapiImage | null | undefined): string {
-  if (!image?.data?.attributes?.url) return '';
-  const url = image.data.attributes.url;
-  return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
+  if (!image) return '';
+  
+  // Direct URL format (when populated with pLevel)
+  if (image.url) {
+    const url = image.url;
+    return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
+  }
+  
+  // Nested format (data.attributes.url)
+  if (image.data?.attributes?.url) {
+    const url = image.data.attributes.url;
+    return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
+  }
+  
+  // Try formats as fallback
+  if (image.formats?.large?.url) {
+    const url = image.formats.large.url;
+    return url.startsWith('http') ? url : `${STRAPI_URL}${url}`;
+  }
+  
+  return '';
 }
 
 /**
@@ -154,5 +230,39 @@ function transformStrapiItem<T>(item: StrapiItem<T>): T & { id: string } {
  */
 function transformStrapiCollection<T>(data: StrapiItem<T>[]): (T & { id: string })[] {
   return data.map(transformStrapiItem);
+}
+
+/**
+ * Subscribe to newsletter
+ */
+export async function subscribeNewsletter(email: string): Promise<{ success: boolean; message?: string }> {
+  try {
+    const response = await fetch(`${STRAPI_URL}/api/newsletter-subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(STRAPI_API_TOKEN && { Authorization: `Bearer ${STRAPI_API_TOKEN}` }),
+      },
+      body: JSON.stringify({
+        data: {
+          email,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, message: 'Đăng ký thành công!' };
+  } catch (error) {
+    console.error('Newsletter subscription error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.',
+    };
+  }
 }
 

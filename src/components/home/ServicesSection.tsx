@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ArrowRight, Film, Settings, Music, Sparkles, LucideIcon } from 'lucide-react';
 
 export interface Service {
-  icon: string;
+  icon: string | null; // Icon name as string or null
   title: string;
   description: string;
   image: string;
@@ -15,6 +15,8 @@ export interface Service {
 }
 
 interface ServicesSectionProps {
+  title?: string;
+  subtitle?: string;
   services: Service[];
 }
 
@@ -25,23 +27,27 @@ const iconMap: Record<string, LucideIcon> = {
   Sparkles,
 };
 
-export default function ServicesSection({ services }: ServicesSectionProps) {
+export default function ServicesSection({ title, subtitle, services }: ServicesSectionProps) {
+  const defaultTitle = 'Dịch vụ chuyên nghiệp';
+  const defaultSubtitle = 'Chúng tôi cung cấp đầy đủ các dịch vụ chăm sóc và nâng cấp xe chuyên nghiệp';
+  
   return (
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-            Dịch vụ <span className="text-brand-accent">chuyên nghiệp</span>
+            {title || defaultTitle}
           </h2>
           <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
-            Chúng tôi cung cấp đầy đủ các dịch vụ chăm sóc và nâng cấp xe chuyên nghiệp
+            {subtitle || defaultSubtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {services.map((service, index) => {
-            const Icon = iconMap[service.icon];
-            if (!Icon) return null;
+            // Use default icon if icon is null/undefined, or fallback to first available icon
+            const iconName = service.icon || 'Settings';
+            const Icon = iconMap[iconName] || Settings; // Fallback to Settings if icon not found
 
             return (
               <div

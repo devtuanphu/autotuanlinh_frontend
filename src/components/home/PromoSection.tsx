@@ -17,10 +17,15 @@ export interface Promo {
 }
 
 interface PromoSectionProps {
+  title?: string;
+  subtitle?: string;
   promos: Promo[];
 }
 
-export default function PromoSection({ promos }: PromoSectionProps) {
+export default function PromoSection({ title, subtitle, promos }: PromoSectionProps) {
+  const defaultTitle = 'Ưu đãi hấp dẫn';
+  const defaultSubtitle = 'Nhiều chương trình khuyến mãi đang chờ đón bạn';
+  
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-br from-brand-accent via-brand-accent-dark to-brand-dark">
       <div className="container mx-auto px-4">
@@ -30,10 +35,10 @@ export default function PromoSection({ promos }: PromoSectionProps) {
             <span className="text-white font-bold text-sm uppercase tracking-wider">Khuyến mãi đặc biệt</span>
           </div>
           <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4">
-            Ưu đãi <span className="text-yellow-300">hấp dẫn</span>
+            {title || defaultTitle}
           </h2>
           <p className="text-lg lg:text-xl text-white/90 max-w-2xl mx-auto">
-            Nhiều chương trình khuyến mãi đang chờ đón bạn
+            {subtitle || defaultSubtitle}
           </p>
         </div>
 

@@ -4,7 +4,7 @@ import React from 'react';
 import { Users, Award, ShoppingBag, Star, LucideIcon } from 'lucide-react';
 
 export interface Statistic {
-  icon: string;
+  icon: string | null; // Icon name as string or null
   value: string;
   label: string;
 }
@@ -27,8 +27,9 @@ export default function StatisticsSection({ statistics }: StatisticsSectionProps
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {statistics.map((stat, index) => {
-            const Icon = iconMap[stat.icon];
-            if (!Icon) return null;
+            // Use default icon if icon is null/undefined, or fallback to first available icon
+            const iconName = stat.icon || 'Award';
+            const Icon = iconMap[iconName] || Award; // Fallback to Award if icon not found
 
             return (
               <div

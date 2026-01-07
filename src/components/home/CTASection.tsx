@@ -6,7 +6,8 @@ import { ArrowRight, Phone } from 'lucide-react';
 
 interface CTASectionProps {
   title?: string;
-  description?: string;
+  subtitle?: string;
+  description?: string; // Keep for backward compatibility
   primaryButton?: {
     text: string;
     href: string;
@@ -19,7 +20,8 @@ interface CTASectionProps {
 
 export default function CTASection({
   title = 'Sẵn sàng nâng cấp xe của bạn?',
-  description = 'Liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí',
+  subtitle,
+  description,
   primaryButton = {
     text: 'Liên hệ ngay',
     href: '/lien-he',
@@ -29,6 +31,9 @@ export default function CTASection({
     href: '/san-pham',
   },
 }: CTASectionProps) {
+  const defaultDescription = 'Liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí';
+  const finalDescription = subtitle || description || defaultDescription;
+  
   return (
     <section className="py-16 lg:py-20 bg-gradient-to-br from-brand-accent to-brand-accent-dark">
       <div className="container mx-auto px-4">
@@ -37,7 +42,7 @@ export default function CTASection({
             {title}
           </h2>
           <p className="text-lg lg:text-xl text-white/90 mb-8 lg:mb-10">
-            {description}
+            {finalDescription}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link

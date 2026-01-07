@@ -15,6 +15,8 @@ export interface Category {
 }
 
 interface CategoriesSectionProps {
+  title?: string;
+  subtitle?: string;
   categories: Category[];
 }
 
@@ -25,23 +27,38 @@ const iconMap: Record<string, LucideIcon> = {
   Settings,
 };
 
-export default function CategoriesSection({ categories }: CategoriesSectionProps) {
+// Default icon fallback
+const DefaultIcon = Car;
+
+export default function CategoriesSection({ title, subtitle, categories }: CategoriesSectionProps) {
+  const defaultTitle = 'Danh mục sản phẩm';
+  const defaultSubtitle = 'Khám phá đầy đủ các danh mục phụ kiện ô tô chính hãng';
+  
+  const finalTitle = title || defaultTitle;
+  const finalSubtitle = subtitle || defaultSubtitle;
+  
   return (
     <section className="py-16 lg:py-24 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-            Danh mục <span className="text-brand-accent">sản phẩm</span>
+            {finalTitle.includes('sản phẩm') ? (
+              <>
+                {finalTitle.split('sản phẩm')[0]}
+                <span className="text-brand-accent">sản phẩm</span>
+              </>
+            ) : (
+              finalTitle
+            )}
           </h2>
           <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
-            Khám phá đầy đủ các danh mục phụ kiện ô tô chính hãng
+            {finalSubtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {categories.map((category, index) => {
-            const Icon = iconMap[category.icon];
-            if (!Icon) return null;
+            const Icon = iconMap[category.icon] || DefaultIcon;
 
             return (
               <Link
@@ -64,11 +81,6 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
                     <h3 className="text-2xl lg:text-3xl font-extrabold text-white mb-2">
                       {category.name}
                     </h3>
-                    <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 bg-brand-accent/90 backdrop-blur-sm text-white text-sm font-bold rounded-full">
-                        {category.productCount}+ sản phẩm
-                      </span>
-                    </div>
                   </div>
                 </div>
                 <div className="p-6">

@@ -4,13 +4,15 @@ import React from 'react';
 import { Search, MessageSquare, CheckCircle, Truck, LucideIcon } from 'lucide-react';
 
 export interface ProcessStep {
-  icon: string;
+  icon: string | null; // Icon name as string or null
   title: string;
   description: string;
   step: number;
 }
 
 interface ProcessSectionProps {
+  title?: string;
+  subtitle?: string;
   steps: ProcessStep[];
 }
 
@@ -21,16 +23,19 @@ const iconMap: Record<string, LucideIcon> = {
   Truck,
 };
 
-export default function ProcessSection({ steps }: ProcessSectionProps) {
+export default function ProcessSection({ title, subtitle, steps }: ProcessSectionProps) {
+  const defaultTitle = 'Quy trình mua hàng';
+  const defaultSubtitle = 'Chỉ với 4 bước đơn giản, bạn đã có thể sở hữu sản phẩm chất lượng';
+  
   return (
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-            Quy trình <span className="text-brand-accent">mua hàng</span>
+            {title || defaultTitle}
           </h2>
           <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
-            Chỉ với 4 bước đơn giản, bạn đã có thể sở hữu sản phẩm chất lượng
+            {subtitle || defaultSubtitle}
           </p>
         </div>
 
@@ -40,8 +45,9 @@ export default function ProcessSection({ steps }: ProcessSectionProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 relative">
             {steps.map((step, index) => {
-              const Icon = iconMap[step.icon];
-              if (!Icon) return null;
+              // Use default icon if icon is null/undefined, or fallback to first available icon
+              const iconName = step.icon || 'Search';
+              const Icon = iconMap[iconName] || Search; // Fallback to Search if icon not found
 
               return (
                 <div

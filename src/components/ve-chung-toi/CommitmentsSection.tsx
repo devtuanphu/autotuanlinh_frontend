@@ -1,18 +1,31 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle, Handshake, LucideIcon } from 'lucide-react';
+import { CheckCircle, Shield, Award, Heart, Handshake, LucideIcon } from 'lucide-react';
 import { Commitment } from '@/lib/data/ve-chung-toi';
 
 interface CommitmentsSectionProps {
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  subtitle?: string;
   commitments: Commitment[];
 }
 
 const iconMap: Record<string, LucideIcon> = {
   CheckCircle,
+  Shield,
+  Award,
+  Heart,
 };
 
-export default function CommitmentsSection({ commitments }: CommitmentsSectionProps) {
+export default function CommitmentsSection({ 
+  badge = 'Cam kết',
+  title = 'Cam kết',
+  titleHighlight = 'của chúng tôi',
+  subtitle = 'Những cam kết chúng tôi dành cho khách hàng',
+  commitments 
+}: CommitmentsSectionProps) {
   const [isVisible, setIsVisible] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 

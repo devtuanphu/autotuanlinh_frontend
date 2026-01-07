@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 export interface Feature {
-  icon: string; // Icon name as string
+  icon: string | null; // Icon name as string or null
   title: string;
   description: string;
 }
@@ -33,8 +33,9 @@ export default function FeaturesSection({ features }: FeaturesSectionProps) {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => {
-            const Icon = iconMap[feature.icon];
-            if (!Icon) return null;
+            // Use default icon if icon is null/undefined, or fallback to first available icon
+            const iconName = feature.icon || 'Shield';
+            const Icon = iconMap[iconName] || Shield; // Fallback to Shield if icon not found
             
             return (
               <div

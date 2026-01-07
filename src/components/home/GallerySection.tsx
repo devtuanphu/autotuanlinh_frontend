@@ -13,11 +13,16 @@ export interface GalleryImage {
 }
 
 interface GallerySectionProps {
+  title?: string;
+  subtitle?: string;
   images: GalleryImage[];
 }
 
-export default function GallerySection({ images }: GallerySectionProps) {
+export default function GallerySection({ title, subtitle, images }: GallerySectionProps) {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  
+  const defaultTitle = 'Hình ảnh thực tế';
+  const defaultSubtitle = 'Khám phá không gian cửa hàng và các dự án đã hoàn thành của chúng tôi';
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -45,10 +50,10 @@ export default function GallerySection({ images }: GallerySectionProps) {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 lg:mb-16">
             <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-              Hình ảnh <span className="text-brand-accent">thực tế</span>
+              {title || defaultTitle}
             </h2>
             <p className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
-              Khám phá không gian cửa hàng và các dự án đã hoàn thành của chúng tôi
+              {subtitle || defaultSubtitle}
             </p>
           </div>
 
