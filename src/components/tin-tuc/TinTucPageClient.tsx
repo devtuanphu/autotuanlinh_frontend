@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import ArticleListLayout from '@/components/shared/ArticleListLayout';
 import FeaturedArticlesSection from './FeaturedArticlesSection';
-import FilterSection from './FilterSection';
 import ArticlesGridSection from './ArticlesGridSection';
 import PaginationSection from './PaginationSection';
 import { NewsArticle } from '@/lib/data/articles';
@@ -24,7 +23,7 @@ interface TinTucPageClientProps {
 export default function TinTucPageClient({ 
   articles, 
   featuredArticles: featuredArticlesFromProps = [],
-  categories: categoriesFromProps = [{ id: 'all', name: 'Tất cả', count: 0 }],
+  categories: _categoriesFromProps, // eslint-disable-line @typescript-eslint/no-unused-vars
   title = 'Tin tức',
   description = 'Cập nhật tin tức mới nhất về phụ kiện ô tô, xu hướng, đánh giá sản phẩm và nhiều thông tin hữu ích khác',
   totalArticles: totalArticlesFromProps = 0,

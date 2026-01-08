@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Phone, Mail, MapPin, Clock, Calendar } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { ContactInfo } from '@/lib/data/lien-he';
 
 interface ContactMethodsSectionProps {

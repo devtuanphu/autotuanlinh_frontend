@@ -28,7 +28,7 @@ export default function OrderSummarySection({ customerInfo, paymentMethod }: Ord
   };
 
   const subtotal = getTotalPrice();
-  const shipping = 50000; // Default shipping fee
+  const shipping: number = 50000; // Default shipping fee
   const total = subtotal + shipping;
   const totalItems = getTotalItems();
 
@@ -127,8 +127,10 @@ export default function OrderSummarySection({ customerInfo, paymentMethod }: Ord
       if (result.success) {
         // Save order info to localStorage before clearing cart
         if (typeof window !== 'undefined') {
-          const orderId = result.data?.data?.id 
-            ? `ATL-${result.data.data.id}`
+          // Type guard for Strapi response
+          const strapiResponse = result.data as { data?: { id?: number | string } } | undefined;
+          const orderId = strapiResponse?.data?.id 
+            ? `ATL-${strapiResponse.data.id}`
             : `ATL-${Date.now().toString().slice(-8)}`;
           const orderDate = new Date().toLocaleString('vi-VN', {
             year: 'numeric',

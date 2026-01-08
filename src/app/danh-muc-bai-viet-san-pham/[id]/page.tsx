@@ -5,7 +5,7 @@ import ArticlesGridSection from '@/components/danh-muc-bai-viet-san-pham/Article
 import EmptyStateSection from '@/components/danh-muc-bai-viet-san-pham/EmptyStateSection';
 import NotFoundSection from '@/components/danh-muc-bai-viet-san-pham/NotFoundSection';
 import { ArticleItem } from '@/lib/data/danh-muc-bai-viet-san-pham';
-import { fetchStrapi, getStrapiImageUrl } from '@/lib/api/strapi';
+import { fetchStrapi } from '@/lib/api/strapi';
 
 interface PageProps {
   params: {
