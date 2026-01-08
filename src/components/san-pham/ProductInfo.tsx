@@ -31,7 +31,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
 
-  const discount = product.originalPrice
+  // Use giamGia from API if available, otherwise calculate from originalPrice and price
+  const discount = product.giamGia !== null && product.giamGia !== undefined
+    ? product.giamGia
+    : product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
@@ -41,7 +44,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     setIsAddingToCart(true);
     addItem({
       id: product.id,
-      productId: product.id,
+      productId: product.strapiId ? String(product.strapiId) : product.id, // Use Strapi ID if available
       name: product.name,
       price: product.price,
       originalPrice: product.originalPrice,
@@ -63,7 +66,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     // Add to cart first
     addItem({
       id: product.id,
-      productId: product.id,
+      productId: product.strapiId ? String(product.strapiId) : product.id, // Use Strapi ID if available
       name: product.name,
       price: product.price,
       originalPrice: product.originalPrice,

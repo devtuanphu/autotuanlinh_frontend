@@ -1,100 +1,89 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import ArticleListLayout from '@/components/shared/ArticleListLayout';
 import FeaturedArticlesSection from './FeaturedArticlesSection';
 import FilterSection from './FilterSection';
 import ArticlesGridSection from './ArticlesGridSection';
 import PaginationSection from './PaginationSection';
 import { NewsArticle } from '@/lib/data/articles';
-import { ITEMS_PER_PAGE, tinTucCategories } from '@/lib/data/tin-tuc';
+import { ITEMS_PER_PAGE, Category } from '@/lib/data/tin-tuc';
 
 interface TinTucPageClientProps {
   articles: NewsArticle[];
+  featuredArticles?: NewsArticle[];
+  categories?: Category[];
+  title?: string;
+  description?: string;
+  totalArticles?: number;
+  totalPages?: number;
+  currentPage?: number;
 }
 
-export default function TinTucPageClient({ articles: allArticles }: TinTucPageClientProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState<number>(1);
+export default function TinTucPageClient({ 
+  articles, 
+  featuredArticles: featuredArticlesFromProps = [],
+  categories: categoriesFromProps = [{ id: 'all', name: 'Tất cả', count: 0 }],
+  title = 'Tin tức',
+  description = 'Cập nhật tin tức mới nhất về phụ kiện ô tô, xu hướng, đánh giá sản phẩm và nhiều thông tin hữu ích khác',
+  totalArticles: totalArticlesFromProps = 0,
+  totalPages: totalPagesFromProps = 1,
+  currentPage: currentPageFromProps = 1,
+}: TinTucPageClientProps) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  
+  // Get current page from URL params or props
+  const currentPage = parseInt(searchParams.get('page') || String(currentPageFromProps), 10);
 
-  // Calculate categories with counts
-  const categories = useMemo(() => {
-    return tinTucCategories.map((cat) => {
-      if (cat.id === 'all') {
-        return { ...cat, count: allArticles.length };
-      }
-      return {
-        ...cat,
-        count: allArticles.filter((a) => a.category === cat.id).length,
-      };
-    });
-  }, [allArticles]);
-
-  // Filter articles by category
-  const filteredArticles = useMemo(() => {
-    if (selectedCategory === 'all') {
-      return allArticles;
-    }
-    return allArticles.filter((article) => article.category === selectedCategory);
-  }, [allArticles, selectedCategory]);
-
-  // Get featured articles
+  // Use featured articles from props
   const featuredArticles = useMemo(() => {
-    return allArticles.filter((article) => article.featured);
-  }, [allArticles]);
+    return featuredArticlesFromProps;
+  }, [featuredArticlesFromProps]);
 
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredArticles.length / ITEMS_PER_PAGE);
+  // Calculate pagination from API data
+  const totalPages = totalPagesFromProps;
+  const totalArticles = totalArticlesFromProps;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedArticles = filteredArticles.slice(startIndex, endIndex);
+  const endIndex = startIndex + articles.length;
+  const paginatedArticles = articles; // Articles are already paginated from API
 
-  // Reset to page 1 when category changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory]);
-
-  // Scroll to top when page changes
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentPage]);
-
+  // Update URL when page changes and reload page
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleCategoryChange = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setCurrentPage(1);
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    window.location.href = `${pathname}?${params.toString()}`;
   };
 
   const breadcrumbs = [{ name: 'Tin tức', href: '/tin-tuc' }];
 
   return (
     <ArticleListLayout
-      title="Tin tức"
-      description="Cập nhật tin tức mới nhất về phụ kiện ô tô, xu hướng, đánh giá sản phẩm và nhiều thông tin hữu ích khác"
+      title={title}
+      description={description}
       breadcrumbs={breadcrumbs}
       showBreadcrumb={true}
       bannerImage="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&h=1080&fit=crop"
     >
       <FeaturedArticlesSection articles={featuredArticles} />
-      <FilterSection
+      {/* Temporarily commented out filter section */}
+      {/* <FilterSection
         categories={categories}
         selectedCategory={selectedCategory}
         totalCount={filteredArticles.length}
         onCategoryChange={handleCategoryChange}
-      />
+      /> */}
       <ArticlesGridSection
         articles={paginatedArticles}
-        onResetFilter={() => handleCategoryChange('all')}
+        // onResetFilter={() => handleCategoryChange('all')}
       />
       <PaginationSection
         currentPage={currentPage}
         totalPages={totalPages}
         startIndex={startIndex}
         endIndex={endIndex}
-        totalItems={filteredArticles.length}
+        totalItems={totalArticles}
         onPageChange={handlePageChange}
       />
     </ArticleListLayout>

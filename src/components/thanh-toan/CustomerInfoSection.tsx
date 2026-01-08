@@ -1,22 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { User, Phone, Mail, MapPin, Building2 } from 'lucide-react';
 
-export default function CustomerInfoSection() {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    district: '',
-    ward: '',
-    note: '',
-  });
+export interface CustomerFormData {
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  district: string;
+  ward: string;
+  note?: string;
+}
 
+interface CustomerInfoSectionProps {
+  formData: CustomerFormData;
+  onFormDataChange: (data: CustomerFormData) => void;
+}
+
+export default function CustomerInfoSection({ formData, onFormDataChange }: CustomerInfoSectionProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
+    onFormDataChange({
       ...formData,
       [e.target.name]: e.target.value,
     });

@@ -7,6 +7,27 @@ import { ContactInfo, SocialLink } from '@/lib/data/lien-he';
 interface ContactFormSectionProps {
   contactInfo: ContactInfo;
   socialLinks: SocialLink[];
+  contactFormSection?: {
+    badge?: string;
+    title?: string;
+    subtitle?: string;
+    mapEmbedUrl?: string;
+    mapTitle?: string;
+    mapLink?: string;
+    workingHours?: {
+      title?: string;
+      subtitle?: string;
+      timeSlots?: Array<{
+        label?: string;
+        days?: string;
+        hours?: string;
+      }>;
+    };
+    socialLinks?: Array<{
+      url?: string;
+      icon?: string | null;
+    }>;
+  } | null;
 }
 
 const socialIconMap: Record<string, LucideIcon> = {
@@ -14,9 +35,49 @@ const socialIconMap: Record<string, LucideIcon> = {
   Instagram,
   Youtube,
   MessageCircle,
+  Globe,
 };
 
-export default function ContactFormSection({ contactInfo, socialLinks }: ContactFormSectionProps) {
+export default function ContactFormSection({ contactInfo, socialLinks, contactFormSection }: ContactFormSectionProps) {
+  const badge = contactFormSection?.badge || 'Gửi tin nhắn';
+  const title = contactFormSection?.title || 'Liên hệ với chúng tôi';
+  const subtitle = contactFormSection?.subtitle || 'Điền thông tin bên dưới, chúng tôi sẽ liên hệ lại với bạn trong thời gian sớm nhất';
+  
+  // Default Google Maps embed URL
+  const defaultMapUrl = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.319257590283!2d106.6296558!3d10.8230989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317529439e9b9f9f%3A0x1b5c8e8e8e8e8e8e!2zVGjDoG5oIHBo4buRIEjhu5MgQ2jDrSBNaW5o!5e0!3m2!1svi!2s!4v1234567890';
+  
+  // Validate mapEmbedUrl - only use if it's a valid URL (starts with http/https and contains 'maps' or 'google')
+  const rawMapUrl = contactFormSection?.mapEmbedUrl;
+  const isValidMapUrl = rawMapUrl && 
+    typeof rawMapUrl === 'string' && 
+    rawMapUrl.trim() !== '' &&
+    (rawMapUrl.startsWith('http://') || rawMapUrl.startsWith('https://')) &&
+    (rawMapUrl.includes('maps') || rawMapUrl.includes('google'));
+  
+  const mapEmbedUrl = isValidMapUrl ? rawMapUrl : defaultMapUrl;
+  
+  const workingHoursTitle = contactFormSection?.workingHours?.title || 'Giờ làm việc';
+  const workingHoursSubtitle = contactFormSection?.workingHours?.subtitle || 'Chúng tôi luôn sẵn sàng';
+  const timeSlots = contactFormSection?.workingHours?.timeSlots || [
+    { label: 'Thứ 2 - Thứ 6', days: 'Ngày làm việc', hours: contactInfo.workingHours.weekdays },
+    { label: 'Thứ 7 - Chủ nhật', days: 'Cuối tuần', hours: contactInfo.workingHours.weekends },
+  ];
+  
+  // Use socialLinks from contactFormSection if available, otherwise use socialLinks prop
+  // Filter out invalid URLs (not starting with http/https)
+  const displaySocialLinks = contactFormSection?.socialLinks && contactFormSection.socialLinks.length > 0
+    ? contactFormSection.socialLinks
+        .filter(link => link.url && (link.url.startsWith('http://') || link.url.startsWith('https://')))
+        .map((link) => {
+          const iconName = link.icon || 'Globe';
+          return {
+            name: iconName,
+            icon: iconName,
+            href: link.url || '#',
+            color: 'bg-gray-500',
+          };
+        })
+    : socialLinks;
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -67,13 +128,13 @@ export default function ContactFormSection({ contactInfo, socialLinks }: Contact
             <div className="mb-10">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-accent/10 rounded-full mb-6">
                 <FileText size={16} className="text-brand-accent" />
-                <span className="text-sm font-bold text-brand-accent uppercase tracking-wider">Gửi tin nhắn</span>
+                <span className="text-sm font-bold text-brand-accent uppercase tracking-wider">{badge}</span>
               </div>
               <h2 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4">
-                Liên hệ với chúng tôi
+                {title}
               </h2>
               <p className="text-lg text-gray-600 leading-relaxed">
-                Điền thông tin bên dưới, chúng tôi sẽ liên hệ lại với bạn trong thời gian sớm nhất
+                {subtitle}
               </p>
             </div>
 
@@ -223,7 +284,7 @@ export default function ContactFormSection({ contactInfo, socialLinks }: Contact
             <div className="rounded-3xl overflow-hidden shadow-2xl border-2 border-gray-100">
               <div className="relative h-[450px]">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.319257590283!2d106.6296558!3d10.8230989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317529439e9b9f9f%3A0x1b5c8e8e8e8e8e8e!2zVGjDoG5oIHBo4buRIEjhu5MgQ2jDrSBNaW5o!5e0!3m2!1svi!2s!4v1234567890"
+                  src={mapEmbedUrl}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -231,6 +292,7 @@ export default function ContactFormSection({ contactInfo, socialLinks }: Contact
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   className="absolute inset-0 w-full h-full"
+                  title={contactFormSection?.mapTitle || 'Map'}
                 />
               </div>
             </div>
@@ -242,61 +304,55 @@ export default function ContactFormSection({ contactInfo, socialLinks }: Contact
                   <Clock size={28} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black">Giờ làm việc</h3>
-                  <p className="text-gray-400 text-sm">Chúng tôi luôn sẵn sàng</p>
+                  <h3 className="text-2xl font-black">{workingHoursTitle}</h3>
+                  <p className="text-gray-400 text-sm">{workingHoursSubtitle}</p>
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                  <div className="flex items-center gap-4">
-                    <Calendar size={20} className="text-brand-accent" />
-                    <div>
-                      <span className="font-bold block">Thứ 2 - Thứ 6</span>
-                      <span className="text-sm text-gray-400">Ngày làm việc</span>
+                {timeSlots.map((slot, index) => (
+                  <div key={index} className="flex items-center justify-between p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                    <div className="flex items-center gap-4">
+                      <Calendar size={20} className="text-brand-accent" />
+                      <div>
+                        <span className="font-bold block">{slot.days || slot.label}</span>
+                        {slot.label && slot.days && (
+                          <span className="text-sm text-gray-400">{slot.label}</span>
+                        )}
+                      </div>
                     </div>
+                    <span className="text-lg font-black text-brand-accent">{slot.hours}</span>
                   </div>
-                  <span className="text-lg font-black text-brand-accent">{contactInfo.workingHours.weekdays}</span>
-                </div>
-                <div className="flex items-center justify-between p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-                  <div className="flex items-center gap-4">
-                    <Calendar size={20} className="text-brand-accent" />
-                    <div>
-                      <span className="font-bold block">Thứ 7 - Chủ nhật</span>
-                      <span className="text-sm text-gray-400">Cuối tuần</span>
-                    </div>
-                  </div>
-                  <span className="text-lg font-black text-brand-accent">{contactInfo.workingHours.weekends}</span>
-                </div>
+                ))}
               </div>
             </div>
 
             {/* Social Media */}
-            <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100">
-              <h3 className="text-2xl font-black text-gray-900 mb-2 flex items-center gap-3">
-                <Globe size={24} className="text-brand-accent" />
-                Kết nối với chúng tôi
-              </h3>
-              <p className="text-gray-600 mb-6">Theo dõi để cập nhật tin tức và ưu đãi mới nhất</p>
-              <div className="grid grid-cols-2 gap-4">
-                {socialLinks.map((social) => {
-                  const Icon = socialIconMap[social.icon];
-                  if (!Icon) return null;
-
-                  return (
-                    <a
-                      key={social.name}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${social.color} text-white p-5 rounded-2xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-2 group`}
-                    >
-                      <Icon size={28} className="group-hover:scale-110 transition-transform" />
-                      <span className="font-bold text-sm">{social.name}</span>
-                    </a>
-                  );
-                })}
+            {displaySocialLinks && displaySocialLinks.length > 0 && (
+              <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100">
+                <h3 className="text-2xl font-black text-gray-900 mb-2 flex items-center gap-3">
+                  <Globe size={24} className="text-brand-accent" />
+                  Kết nối với chúng tôi
+                </h3>
+                <p className="text-gray-600 mb-6">Theo dõi để cập nhật tin tức và ưu đãi mới nhất</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {displaySocialLinks.map((social, index) => {
+                    const Icon = socialIconMap[social.icon] || Globe;
+                    return (
+                      <a
+                        key={index}
+                        href={social.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${social.color} text-white p-5 rounded-2xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex flex-col items-center justify-center gap-2 group`}
+                      >
+                        <Icon size={28} className="group-hover:scale-110 transition-transform" />
+                        <span className="font-bold text-sm">{social.name}</span>
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

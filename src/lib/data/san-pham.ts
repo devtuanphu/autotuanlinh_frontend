@@ -3,6 +3,23 @@ import React from 'react';
 export interface ProductItem {
   name: string;
   href: string;
+  // Optional fields from API
+  giaBan?: number | null;
+  giaGoc?: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  badges?: string | null;
+  giamGia?: number | null;
+  anhSanPham?: Array<{
+    url?: string;
+    formats?: {
+      large?: { url?: string };
+      medium?: { url?: string };
+      small?: { url?: string };
+      thumbnail?: { url?: string };
+    };
+  }> | null;
+  slug?: string;
 }
 
 export interface ProductSubCategory {
@@ -99,45 +116,68 @@ export function findProductCategoryDetail(
   return null;
 }
 
-// Helper function to generate mock product data from ProductItem
+// Helper function to generate product data from ProductItem (with API data support)
 export function generateProductFromItem(
   item: ProductItem,
   index: number,
   subCategoryId: string
 ) {
-  // Tạo giá dựa trên index và subCategory id để tránh hydration error
-  const priceSeed = (subCategoryId.charCodeAt(0) || 0) + (index * 13);
-  const basePrice = 1000000 + ((priceSeed % 50) * 100000); // 1M - 6M
-  const price = basePrice;
-  const originalPrice = basePrice + ((priceSeed % 30) * 100000); // Giá gốc cao hơn
+  // Use API data if available, otherwise generate mock data
+  const price = item.giaBan ?? (() => {
+    const priceSeed = (subCategoryId.charCodeAt(0) || 0) + (index * 13);
+    return 1000000 + ((priceSeed % 50) * 100000); // 1M - 6M
+  })();
   
-  // Tạo rating dựa trên index - đảm bảo deterministic và tránh floating point issues
-  const ratingSeed = (subCategoryId.charCodeAt(0) || 0) + (index * 7);
-  const ratingMod = ratingSeed % 20; // 0-19
-  // Tính rating với integer arithmetic để tránh floating point precision issues
-  const ratingInt = 40 + ratingMod; // 40-59 (tương đương 4.0-5.9)
-  // Làm tròn về 1 chữ số thập phân bằng cách chia cho 10
-  const rating = ratingInt / 10;
+  const originalPrice = item.giaGoc ?? (() => {
+    const priceSeed = (subCategoryId.charCodeAt(0) || 0) + (index * 13);
+    const basePrice = 1000000 + ((priceSeed % 50) * 100000);
+    return basePrice + ((priceSeed % 30) * 100000);
+  })();
   
-  // Tạo reviews dựa trên index
-  const reviewsSeed = (subCategoryId.charCodeAt(0) || 0) + (index * 11);
-  const reviews = 10 + ((reviewsSeed % 200)); // 10 - 210
+  // Use API rating if available, otherwise generate mock
+  const rating = item.rating !== null && item.rating !== undefined 
+    ? Math.round(Number(item.rating) * 10) / 10 // Normalize to 1 decimal place
+    : (() => {
+        const ratingSeed = (subCategoryId.charCodeAt(0) || 0) + (index * 7);
+        const ratingMod = ratingSeed % 20; // 0-19
+        const ratingInt = 40 + ratingMod; // 40-59 (tương đương 4.0-5.9)
+        return ratingInt / 10;
+      })();
   
-  // Tạo badge dựa trên index
-  const badges = ['Bán chạy', 'Mới', 'Hot', undefined];
-  const badge = badges[index % badges.length];
+  // Use API review count if available, otherwise generate mock
+  const reviews = item.reviewCount ?? (() => {
+    const reviewsSeed = (subCategoryId.charCodeAt(0) || 0) + (index * 11);
+    return 10 + ((reviewsSeed % 200)); // 10 - 210
+  })();
   
-  // Tạo popularity score (for sorting)
-  const popularity = (reviewsSeed % 100) + (rating * 10);
+  // Use API badge if available, otherwise generate mock
+  const badge = item.badges ?? (() => {
+    const badges = ['Bán chạy', 'Mới', 'Hot', undefined];
+    return badges[index % badges.length];
+  })();
   
-  // Extract slug from href (e.g., '/san-pham/ghe-da' -> 'ghe-da')
-  const slug = item.href.replace('/san-pham/', '');
+  // Calculate popularity score (for sorting)
+  const popularity = (reviews * 10) + (rating * 10);
+  
+  // Extract slug from href or use item.slug
+  const slug = item.slug || item.href.split('/').pop() || `product-${index}`;
   // Create href with new structure: /san-pham/[categoryId]/[productId]
   const detailHref = `/san-pham/${subCategoryId}/${slug}`;
   
-  // Use placeholder images that work reliably
-  const imageId = (subCategoryId.charCodeAt(0) || 0) + index;
-  const image = `https://picsum.photos/800/500?random=${imageId}`;
+  // Use API image if available, otherwise use placeholder
+  let image = `https://picsum.photos/800/500?random=${(subCategoryId.charCodeAt(0) || 0) + index}`;
+  if (item.anhSanPham && item.anhSanPham.length > 0) {
+    const firstImage = item.anhSanPham[0];
+    const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || process.env.STRAPI_URL || 'http://localhost:1337';
+    // Try to get medium or large format, fallback to url
+    if (firstImage.formats?.medium?.url) {
+      image = `${STRAPI_URL}${firstImage.formats.medium.url}`;
+    } else if (firstImage.formats?.large?.url) {
+      image = `${STRAPI_URL}${firstImage.formats.large.url}`;
+    } else if (firstImage.url) {
+      image = `${STRAPI_URL}${firstImage.url}`;
+    }
+  }
   
   return {
     id: `product-${subCategoryId}-${index}`,
@@ -146,7 +186,7 @@ export function generateProductFromItem(
     price,
     originalPrice: price < originalPrice ? originalPrice : undefined,
     image,
-    rating, // Already rounded above
+    rating, // Already normalized above
     reviews,
     badge,
     href: detailHref,
@@ -164,6 +204,8 @@ export interface ProductDetail extends ReturnType<typeof generateProductFromItem
   images?: string[];
   specifications?: Array<{ label: string; value: string }>;
   longDescription?: string;
+  giamGia?: number | null; // Discount percentage from API
+  strapiId?: number; // Strapi ID (number) for API relations
   category?: {
     parentId: string;
     parentName: string;

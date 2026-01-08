@@ -44,7 +44,7 @@ export function generateMetadata(seoData: SEOData): Metadata {
 
   const fullTitle = title.includes("Auto Tuan Linh")
     ? title
-    : `${title} | Auto Tuan Linh`;
+    : `${title} `;
 
   const metadata: Metadata = {
     title: fullTitle,

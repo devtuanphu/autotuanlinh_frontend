@@ -585,6 +585,7 @@ export default async function HomePageServer() {
           reviews: product.reviewCount || 0,
           badge: product.badges || undefined,
           href: product.slug ? `/san-pham/${product.slug}` : '#',
+          inStock: true, // Default to true, can be enhanced with API data later
         };
       })
     : homeProducts;

@@ -1,11 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Headphones, Zap, Shield, Award, Sparkles, LucideIcon } from 'lucide-react';
+import { Headphones, Zap, Shield, Award, Sparkles, Settings, LucideIcon } from 'lucide-react';
 import { Feature } from '@/lib/data/lien-he';
 
 interface FeaturesSectionProps {
   features: Feature[];
+  title?: string;
+  subtitle?: string;
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -13,9 +15,13 @@ const iconMap: Record<string, LucideIcon> = {
   Zap,
   Shield,
   Award,
+  Settings,
 };
 
-export default function FeaturesSection({ features }: FeaturesSectionProps) {
+export default function FeaturesSection({ features, title, subtitle }: FeaturesSectionProps) {
+  const displayTitle = title || 'Dịch vụ chuyên nghiệp';
+  const displaySubtitle = subtitle || 'Cam kết mang đến trải nghiệm tốt nhất cho khách hàng';
+  
   return (
     <section className="py-24 bg-gradient-to-b from-white to-gray-50/50">
       <div className="container mx-auto px-4 lg:px-8">
@@ -25,10 +31,16 @@ export default function FeaturesSection({ features }: FeaturesSectionProps) {
             <span className="text-sm font-bold text-brand-accent uppercase tracking-wider">Tại sao chọn chúng tôi</span>
           </div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-4">
-            Dịch vụ <span className="bg-gradient-to-r from-brand-accent to-blue-500 bg-clip-text text-transparent">chuyên nghiệp</span>
+            {displayTitle.includes('chuyên nghiệp') ? (
+              <>
+                Dịch vụ <span className="bg-gradient-to-r from-brand-accent to-blue-500 bg-clip-text text-transparent">chuyên nghiệp</span>
+              </>
+            ) : (
+              displayTitle
+            )}
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Cam kết mang đến trải nghiệm tốt nhất cho khách hàng
+            {displaySubtitle}
           </p>
         </div>
 

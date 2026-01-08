@@ -1,15 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import CustomerInfoSection from './CustomerInfoSection';
 import PaymentMethodSection from './PaymentMethodSection';
 import OrderSummarySection from './OrderSummarySection';
 import { CreditCard } from 'lucide-react';
 
+export interface CustomerFormData {
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  district: string;
+  ward: string;
+  note?: string;
+}
+
+export type PaymentMethod = 'cod' | 'bank' | 'momo' | 'vnpay';
+
 export default function ThanhToanContent() {
   const { getItemCount } = useCart();
   const itemCount = getItemCount();
+  
+  const [customerInfo, setCustomerInfo] = useState<CustomerFormData>({
+    fullName: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: '',
+    district: '',
+    ward: '',
+    note: '',
+  });
+  
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
 
   if (itemCount === 0) {
     return null;
@@ -39,13 +65,22 @@ export default function ThanhToanContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Forms */}
           <div className="lg:col-span-2 space-y-6">
-            <CustomerInfoSection />
-            <PaymentMethodSection />
+            <CustomerInfoSection 
+              formData={customerInfo}
+              onFormDataChange={setCustomerInfo}
+            />
+            <PaymentMethodSection 
+              selectedMethod={paymentMethod}
+              onMethodChange={setPaymentMethod}
+            />
           </div>
 
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
-            <OrderSummarySection />
+            <OrderSummarySection 
+              customerInfo={customerInfo}
+              paymentMethod={paymentMethod}
+            />
           </div>
         </div>
       </div>

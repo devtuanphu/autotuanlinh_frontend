@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import HeaderMobile from "@/components/layout/HeaderMobile";
 import Footer from "@/components/layout/Footer";
 import { CartProvider } from "@/contexts/CartContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { Roboto } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "../style/global.css";
@@ -103,12 +104,14 @@ export default function RootLayout({
           zIndex={1600}
           showAtBottom={false}
         />
-        <CartProvider>
-        <Header />
-        <HeaderMobile />
-          {children}
-        <Footer />
-        </CartProvider>
+        <ToastProvider>
+          <CartProvider>
+            <Header />
+            <HeaderMobile />
+            {children}
+            <Footer />
+          </CartProvider>
+        </ToastProvider>
       </body>
     </html>
   );

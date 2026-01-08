@@ -10,6 +10,7 @@ import {
   Eye, 
   ArrowRight
 } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
 
 interface ProductCardProps {
   id: string;
@@ -29,6 +30,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
+  id,
   name,
   description,
   price,
@@ -41,9 +43,51 @@ const ProductCard: React.FC<ProductCardProps> = ({
   inStock = true,
   brand,
 }) => {
+  const { addItem } = useCart();
   const [isLiked, setIsLiked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+  
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent navigation when clicking add to cart button
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Also stop immediate propagation to prevent Link navigation
+    if (e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
+    }
+    
+    if (!inStock) return;
+    
+    setIsAddingToCart(true);
+    addItem({
+      id,
+      productId: id,
+      name,
+      price,
+      originalPrice,
+      image,
+      quantity: 1,
+      href,
+      inStock,
+    });
+    
+    // Reset after a short delay to show feedback
+    setTimeout(() => {
+      setIsAddingToCart(false);
+    }, 500);
+  };
+  
+  const handleAddToCartMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent Link navigation on mousedown (fires before onClick)
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
+    }
+  };
 
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { 
@@ -54,8 +98,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <Link href={href} className="group block">
-      <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-brand-accent/40 h-full flex flex-col">
+    <div className="group block">
+      <Link href={href} className="block">
+        <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-brand-accent/40 h-full flex flex-col relative">
         {/* Image Container */}
         <div className="relative h-64 bg-gray-100 overflow-hidden">
           {/* Loading skeleton */}
@@ -126,14 +171,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
               <span>Xem nhanh</span>
             </button>
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className="bg-brand-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-accent-dark transition-colors flex items-center gap-2"
+              onClick={handleAddToCart}
+              onMouseDown={handleAddToCartMouseDown}
+              disabled={!inStock || isAddingToCart}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
+                inStock && !isAddingToCart
+                  ? 'bg-brand-accent text-white hover:bg-brand-accent-dark'
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
             >
               <ShoppingCart size={16} />
-              <span>Thêm giỏ</span>
+              <span>{isAddingToCart ? 'Đã thêm!' : 'Thêm giỏ'}</span>
             </button>
           </div>
         </div>
@@ -204,26 +252,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Add to Cart Button */}
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            disabled={!inStock}
-            className={`w-full py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-              inStock
+            onClick={handleAddToCart}
+            onMouseDown={handleAddToCartMouseDown}
+            disabled={!inStock || isAddingToCart}
+            className={`w-full py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 relative z-20 ${
+              inStock && !isAddingToCart
                 ? 'bg-brand-accent hover:bg-brand-accent-dark text-white shadow-md hover:shadow-lg'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             <ShoppingCart size={18} strokeWidth={2} />
-            <span>{inStock ? 'Thêm vào giỏ hàng' : 'Hết hàng'}</span>
-            {inStock && (
+            <span>{isAddingToCart ? 'Đã thêm!' : inStock ? 'Thêm vào giỏ hàng' : 'Hết hàng'}</span>
+            {inStock && !isAddingToCart && (
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             )}
           </button>
         </div>
-      </div>
-    </Link>
+        </div>
+      </Link>
+    </div>
   );
 };
 

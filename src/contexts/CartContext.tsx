@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useToast } from './ToastContext';
 
 export interface CartItem {
   id: string;
@@ -27,9 +28,10 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+function CartProviderInner({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { showToast } = useToast();
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -61,20 +63,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = useCallback((item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id);
+      const wasExisting = !!existingItem;
       
+      let newItems;
       if (existingItem) {
         // Update quantity if item already exists
-        return prevItems.map((i) =>
+        newItems = prevItems.map((i) =>
           i.id === item.id
             ? { ...i, quantity: i.quantity + (item.quantity || 1) }
             : i
         );
       } else {
         // Add new item
-        return [...prevItems, { ...item, quantity: item.quantity || 1 }];
+        newItems = [...prevItems, { ...item, quantity: item.quantity || 1 }];
       }
+      
+      // Show toast notification after state update (using setTimeout to avoid duplicate in StrictMode)
+      setTimeout(() => {
+        if (wasExisting) {
+          showToast(`Đã cập nhật số lượng "${item.name}" trong giỏ hàng`, 'success');
+        } else {
+          showToast(`Đã thêm "${item.name}" vào giỏ hàng`, 'success');
+        }
+      }, 0);
+      
+      return newItems;
     });
-  }, []);
+  }, [showToast]);
 
   const removeItem = useCallback((id: string) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));
@@ -124,6 +139,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       {children}
     </CartContext.Provider>
   );
+}
+
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  return <CartProviderInner>{children}</CartProviderInner>;
 }
 
 export function useCart() {

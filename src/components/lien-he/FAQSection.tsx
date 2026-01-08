@@ -6,10 +6,15 @@ import { FAQ } from '@/lib/data/lien-he';
 
 interface FAQSectionProps {
   faqs: FAQ[];
+  title?: string;
+  subtitle?: string;
 }
 
-export default function FAQSection({ faqs }: FAQSectionProps) {
+export default function FAQSection({ faqs, title, subtitle }: FAQSectionProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  
+  const displayTitle = title || 'Bạn có thắc mắc?';
+  const displaySubtitle = subtitle || 'Tìm câu trả lời cho những câu hỏi phổ biến nhất';
 
   return (
     <section className="py-24 bg-gradient-to-b from-gray-50/50 to-white">
@@ -21,10 +26,10 @@ export default function FAQSection({ faqs }: FAQSectionProps) {
               <span className="text-sm font-bold text-brand-accent uppercase tracking-wider">Câu hỏi thường gặp</span>
             </div>
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-4">
-              Bạn có thắc mắc?
+              {displayTitle}
             </h2>
             <p className="text-xl text-gray-600">
-              Tìm câu trả lời cho những câu hỏi phổ biến nhất
+              {displaySubtitle}
             </p>
           </div>
 

@@ -9,7 +9,8 @@ export const STRAPI_ENDPOINTS = {
   home: '/home',
   veChungToi: '/ve-chung-toi',
   
-  // Collection Types (add more as needed)
+  // Collection Types
+  danhMucBaiViets: '/danh-muc-bai-viets',
   // products: '/products',
   // articles: '/articles',
   // categories: '/categories',

@@ -17,6 +17,9 @@ interface Product {
   reviews: number;
   badge?: string;
   href: string;
+  inStock?: boolean;
+  description?: string;
+  brand?: string;
 }
 
 interface ProductsSwiperProps {

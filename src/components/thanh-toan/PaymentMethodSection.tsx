@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { CreditCard, Wallet, QrCode, CheckCircle2 } from 'lucide-react';
 
-type PaymentMethod = 'cod' | 'bank' | 'momo' | 'vnpay';
+export type PaymentMethod = 'cod' | 'bank' | 'momo' | 'vnpay';
 
 interface PaymentOption {
   id: PaymentMethod;
@@ -39,8 +39,12 @@ const paymentMethods: PaymentOption[] = [
   },
 ];
 
-export default function PaymentMethodSection() {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('cod');
+interface PaymentMethodSectionProps {
+  selectedMethod: PaymentMethod;
+  onMethodChange: (method: PaymentMethod) => void;
+}
+
+export default function PaymentMethodSection({ selectedMethod, onMethodChange }: PaymentMethodSectionProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -58,7 +62,7 @@ export default function PaymentMethodSection() {
         {paymentMethods.map((method) => (
           <button
             key={method.id}
-            onClick={() => setSelectedMethod(method.id)}
+            onClick={() => onMethodChange(method.id)}
             className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
               selectedMethod === method.id
                 ? 'border-brand-accent bg-brand-accent/5 shadow-md'

@@ -92,7 +92,10 @@ export async function fetchStrapi<T = Record<string, unknown>>(
   let url = `${STRAPI_URL}/api${endpoint}`;
   
   // Hardcode pLevel for specific endpoints
-  if (baseEndpoint === '/home' || baseEndpoint === '/footer-contact' || baseEndpoint === '/footer' || baseEndpoint === '/ve-chung-toi') {
+  // Note: /danh-muc-bai-viets/cap-hai/ and /danh-muc-bai-viet-dich-vus/cap-hai/ endpoints don't support pLevel
+  const isCapHaiEndpoint = baseEndpoint.startsWith('/danh-muc-bai-viets/cap-hai/') || baseEndpoint.startsWith('/danh-muc-bai-viet-dich-vus/cap-hai/');
+  
+  if (!isCapHaiEndpoint && (baseEndpoint === '/home' || baseEndpoint === '/footer-contact' || baseEndpoint === '/footer' || baseEndpoint === '/ve-chung-toi' || baseEndpoint === '/lien-he' || baseEndpoint === '/danh-muc-bai-viets' || baseEndpoint.startsWith('/danh-muc-bai-viets/') || baseEndpoint === '/danh-muc-bai-viet-dich-vus' || baseEndpoint.startsWith('/danh-muc-bai-viet-dich-vus/') || baseEndpoint.startsWith('/danh-muc-san-phams/') || baseEndpoint === '/san-phams' || baseEndpoint === '/blogs' || baseEndpoint === '/topic-blogs')) {
     if (!hasQueryParams) {
       url += '?pLevel';
     } else if (!endpoint.includes('pLevel')) {
@@ -227,9 +230,22 @@ function transformStrapiItem<T>(item: StrapiItem<T>): T & { id: string } {
 
 /**
  * Transform Strapi collection
+ * Handles both old format (with attributes) and pLevel format (flat)
  */
-function transformStrapiCollection<T>(data: StrapiItem<T>[]): (T & { id: string })[] {
-  return data.map(transformStrapiItem);
+function transformStrapiCollection<T>(data: (StrapiItem<T> | T)[]): (T & { id: string })[] {
+  return data.map((item) => {
+    // If it has attributes, it's the old format - transform it
+    if (item && typeof item === 'object' && 'attributes' in item && item.attributes) {
+      return transformStrapiItem(item as StrapiItem<T>);
+    }
+    
+    // Otherwise, it's already flat (pLevel format) - just ensure id is string
+    if (item && typeof item === 'object' && 'id' in item) {
+      return { ...(item as unknown as Record<string, unknown>), id: String((item as { id: unknown }).id) } as T & { id: string };
+    }
+    
+    return { ...(item as unknown as Record<string, unknown>), id: String((item as { id?: unknown }).id || '') } as T & { id: string };
+  });
 }
 
 /**
@@ -262,6 +278,63 @@ export async function subscribeNewsletter(email: string): Promise<{ success: boo
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.',
+    };
+  }
+}
+
+/**
+ * Create order
+ */
+export interface CreateOrderData {
+  thongTinKhachHang: {
+    hoVaTen: string;
+    soDienThoai: string;
+    email: string;
+    diaChi: string;
+    tinhThanhPho: string;
+    quanHuyen: string;
+    phuongXa: string;
+  };
+  sanPhams: Array<{
+    sanPham: number; // Must be number (ID of relation)
+    soLuong: number;
+    giaBan: number;
+    thanhTien: number;
+  }>;
+  tamTinh: number;
+  phiVanChuyen: number;
+  tongCong: number;
+  phuongThucThanhToan: {
+    loai: string;
+    ten: string;
+  };
+}
+
+export async function createOrder(orderData: CreateOrderData): Promise<{ success: boolean; data?: unknown; message?: string }> {
+  try {
+    const response = await fetch(`${STRAPI_URL}/api/don-hangs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(STRAPI_API_TOKEN && { Authorization: `Bearer ${STRAPI_API_TOKEN}` }),
+      },
+      body: JSON.stringify({
+        data: orderData,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data, message: 'Đặt hàng thành công!' };
+  } catch (error) {
+    console.error('Create order error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại sau.',
     };
   }
 }
