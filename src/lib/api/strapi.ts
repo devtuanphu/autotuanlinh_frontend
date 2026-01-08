@@ -5,8 +5,10 @@
  * Works with both Single Types and Collection Types
  */
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || process.env.STRAPI_URL || 'http://localhost:1337';
+const STRAPI_URL = process.env.NEXT_PUBLIC_URL_STRAPI || process.env.STRAPI_URL || 'http://localhost:1337';
 const STRAPI_API_TOKEN = process.env.NEXT_PUBLIC_STRAPI_KEY || process.env.NEXT_PUBLIC_STRAPI_API_TOKEN || process.env.STRAPI_API_TOKEN;
+console.log('STRAPI_URL', STRAPI_URL);
+console.log('STRAPI_API_TOKEN', STRAPI_API_TOKEN);
 
 /**
  * Strapi API Response Types
