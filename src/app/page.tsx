@@ -665,7 +665,6 @@ export default async function HomePageServer() {
   const newsletterSubtitle = strapiData?.newsletterSection?.subtitle;
   const newsletterButtonText = strapiData?.newsletterSection?.buttonText;
   const newsletterPrivacyText = strapiData?.newsletterSection?.privacyText;
-  const newsletterIcon = strapiData?.newsletterSection?.icon;
   
   return (
     <>
@@ -703,7 +702,6 @@ export default async function HomePageServer() {
           subtitle={newsletterSubtitle}
           buttonText={newsletterButtonText}
           privacyText={newsletterPrivacyText}
-          icon={newsletterIcon}
         />
         <CTASection 
           title={ctaTitle} 

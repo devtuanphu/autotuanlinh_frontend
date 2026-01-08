@@ -23,16 +23,6 @@ import {
 import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData, trendingSearches } from './constants/headerData';
 import { useCart } from '@/contexts/CartContext';
 
-// Icon mapping
-const iconMap: Record<string, LucideIcon> = {
-  Car,
-  Wrench,
-  Settings,
-  Film,
-  Music,
-  Sparkles,
-};
-
 // Helper to get icon from category name
 const getIconFromCategory = (category: string): LucideIcon => {
   const categoryLower = category.toLowerCase();

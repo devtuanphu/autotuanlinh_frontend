@@ -64,14 +64,19 @@ export default function CommitmentsSection({
           <div className="text-center mb-12 sm:mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-brand-accent/20 backdrop-blur-md border border-brand-accent/40 text-brand-accent rounded-full text-xs sm:text-sm font-bold mb-4 sm:mb-6">
               <Handshake size={14} className="sm:w-4 sm:h-4" />
-              <span>Cam kết</span>
+              <span>{badge}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4">
-              Cam kết của <span className="text-brand-accent">chúng tôi</span>
+              {title}
+              {titleHighlight && (
+                <span className="text-brand-accent"> {titleHighlight}</span>
+              )}
             </h2>
-            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-4">
-              Những cam kết không thay đổi trong mọi hoạt động của chúng tôi
-            </p>
+            {subtitle && (
+              <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto px-4">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">

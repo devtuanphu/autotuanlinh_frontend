@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { generateMetadata as generateSEOMetadata, seoData, type SEOData } from '@/lib/seo';
 import { fetchStrapi, getStrapiImageUrl } from '@/lib/api/strapi';
-import { STRAPI_ENDPOINTS } from '@/lib/api/endpoints';
 import HeroSection from '@/components/ve-chung-toi/HeroSection';
 import AboutSection from '@/components/ve-chung-toi/AboutSection';
 import StatsSection from '@/components/ve-chung-toi/StatsSection';
@@ -18,19 +17,7 @@ import BeforeAfterSection from '@/components/ve-chung-toi/BeforeAfterSection';
 import TeamSection from '@/components/ve-chung-toi/TeamSection';
 import TestimonialsSection from '@/components/ve-chung-toi/TestimonialsSection';
 import CTASection from '@/components/ve-chung-toi/CTASection';
-import {
-  veChungToiStats,
-  veChungToiValues,
-  veChungToiTimeline,
-  veChungToiCommitments,
-  veChungToiPartners,
-  veChungToiCertifications,
-  veChungToiLocations,
-  veChungToiTestimonials,
-  veChungToiProcessSteps,
-  veChungToiBeforeAfter,
-  veChungToiTeamMembers,
-} from '@/lib/data/ve-chung-toi';
+import { veChungToiLocations } from '@/lib/data/ve-chung-toi';
 
 export async function generateMetadata(): Promise<Metadata> {
   let seoDataFromApi: SEOData | null = null;

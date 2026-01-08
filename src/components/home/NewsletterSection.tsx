@@ -10,7 +10,6 @@ interface NewsletterSectionProps {
   description?: string; // Keep for backward compatibility
   buttonText?: string;
   privacyText?: string;
-  icon?: string | null;
 }
 
 export default function NewsletterSection({
@@ -19,7 +18,6 @@ export default function NewsletterSection({
   description,
   buttonText = 'Đăng ký',
   privacyText,
-  icon,
 }: NewsletterSectionProps) {
   const defaultDescription = 'Nhận thông tin về sản phẩm mới, khuyến mãi đặc biệt và mẹo chăm sóc xe hữu ích';
   const defaultPrivacyText = 'Chúng tôi cam kết bảo vệ thông tin của bạn. Bạn có thể hủy đăng ký bất cứ lúc nào.';
@@ -46,7 +44,7 @@ export default function NewsletterSection({
       } else {
         setError(result.message || 'Có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.');
       }
-    } catch (err) {
+    } catch {
       setError('Có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.');
     } finally {
       setIsSubmitting(false);

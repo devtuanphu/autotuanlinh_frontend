@@ -255,7 +255,7 @@ export async function subscribeNewsletter(email: string): Promise<{ success: boo
       throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    await response.json();
     return { success: true, message: 'Đăng ký thành công!' };
   } catch (error) {
     console.error('Newsletter subscription error:', error);

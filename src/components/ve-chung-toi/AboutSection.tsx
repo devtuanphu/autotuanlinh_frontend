@@ -22,7 +22,7 @@ export default function AboutSection({
   title = 'Chúng tôi là ai?',
   titleHighlight = '',
   paragraphs = '',
-  badgeIconUrl = '',
+  badgeIconUrl: _badgeIconUrl = '', // eslint-disable-line @typescript-eslint/no-unused-vars
   imageUrl = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop',
   imageOverlay,
 }: AboutSectionProps) {
@@ -49,17 +49,6 @@ export default function AboutSection({
       observerRef.current?.disconnect();
     };
   }, []);
-
-  const galleryImages = [
-    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1486262715619-67b85e0b08e3?w=600&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=600&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=600&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=600&fit=crop',
-  ];
 
   return (
     <section className="py-16 sm:py-20 lg:py-32 bg-white">
