@@ -205,7 +205,7 @@ const Header = () => {
   useEffect(() => {
     const fetchHeaderData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+        const apiUrl = process.env.NEXT_PUBLIC_URL_STRAPI || 'http://localhost:1337';
         const apiToken = process.env.NEXT_PUBLIC_STRAPI_KEY || '';
         
         const response = await fetch(`${apiUrl}/api/header?pLevel`, {
@@ -281,8 +281,9 @@ const Header = () => {
           // Map danh-muc-san-pham to productCategories for "Danh mục sản phẩm" menu
           if (data['danh-muc-san-pham'] && Array.isArray(data['danh-muc-san-pham'])) {
             const categories = (data['danh-muc-san-pham'] as Array<{
-              category: string;
-              subcategory: Array<{
+              category?: string;
+              slug?: string; // Add slug for level 1
+              subcategory?: Array<{
                 title: string;
                 slug: string;
                 subcategory?: Array<{
@@ -290,20 +291,60 @@ const Header = () => {
                   slug: string;
                 }>;
               }>;
+              // Structure 2: tenDanhMuc/danhMucCapHai format
+              tenDanhMuc?: string;
+              title?: string;
+              danhMucCapHai?: Array<{
+                tenDanhMuc?: string;
+                title?: string;
+                slug: string;
+                danhMucCapBa?: Array<{
+                  tenDanhMuc?: string;
+                  title?: string;
+                  slug: string;
+                }>;
+              }>;
             }>).map((cat) => {
+              // Handle Structure 1: category/subcategory
+              if (cat.category && cat.subcategory) {
+                const categorySlug = cat.slug || cat.category.toLowerCase().replace(/\s+/g, '-');
+                return {
+                  id: categorySlug,
+                  name: cat.category,
+                  icon: getIconFromCategory(cat.category),
+                  href: `/san-pham/${categorySlug}`,
+                  children: cat.subcategory.map((sub) => ({
+                    id: sub.slug,
+                    name: sub.title,
+                    children: sub.subcategory ? sub.subcategory.map((subSub) => ({
+                      name: subSub.title,
+                      href: `/san-pham/${subSub.slug}`, // Level 3 uses its own slug
+                    })) : [],
+                  })),
+                };
+              }
+              
+              // Handle Structure 2: tenDanhMuc/danhMucCapHai/danhMucCapBa
+              const categoryName = cat.tenDanhMuc || cat.title || '';
+              const categorySlug = cat.slug || categoryName.toLowerCase().replace(/\s+/g, '-');
+              
               return {
-                id: cat.category.toLowerCase().replace(/\s+/g, '-'),
-                name: cat.category,
-                icon: getIconFromCategory(cat.category),
-                href: `/san-pham/${cat.category.toLowerCase().replace(/\s+/g, '-')}`,
-                children: cat.subcategory.map((sub) => ({
-                  id: sub.slug,
-                  name: sub.title,
-                  children: sub.subcategory ? sub.subcategory.map((subSub) => ({
-                    name: subSub.title,
-                    href: `/san-pham/${subSub.slug}`,
-                  })) : [],
-                })),
+                id: categorySlug,
+                name: categoryName,
+                icon: getIconFromCategory(categoryName),
+                href: `/san-pham/${categorySlug}`,
+                children: (cat.danhMucCapHai || []).map((sub) => {
+                  const subName = sub.tenDanhMuc || sub.title || '';
+                  const subSlug = sub.slug;
+                  return {
+                    id: subSlug,
+                    name: subName,
+                    children: (sub.danhMucCapBa || []).map((subSub) => ({
+                      name: subSub.tenDanhMuc || subSub.title || '',
+                      href: `/san-pham/${subSub.slug}`, // Level 3 uses its own slug
+                    })),
+                  };
+                }),
               };
             });
             

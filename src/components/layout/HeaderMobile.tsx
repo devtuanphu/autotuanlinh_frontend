@@ -13,9 +13,33 @@ import {
   MapPin,
   Package,
   Grid3x3,
+  Car,
+  Wrench,
+  Settings,
+  Film,
+  Music,
+  Sparkles,
+  type LucideIcon,
 } from 'lucide-react';
-import { menuItems, productCategories, megaMenuData, trendingSearches } from './constants/headerData';
+import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData, trendingSearches } from './constants/headerData';
 import { useCart } from '@/contexts/CartContext';
+
+// Helper to get icon from category name
+const getIconFromCategory = (category: string): LucideIcon => {
+  const categoryLower = category.toLowerCase();
+  if (categoryLower.includes('ngoại thất') || categoryLower.includes('ngoai that')) {
+    return Sparkles;
+  } else if (categoryLower.includes('đồ chơi') || categoryLower.includes('do choi')) {
+    return Settings;
+  } else if (categoryLower.includes('bảo dưỡng') || categoryLower.includes('bao duong')) {
+    return Wrench;
+  } else if (categoryLower.includes('phim') || categoryLower.includes('dán')) {
+    return Film;
+  } else if (categoryLower.includes('âm thanh') || categoryLower.includes('am thanh')) {
+    return Music;
+  }
+  return Car;
+};
 
 const HeaderMobile = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,6 +47,8 @@ const HeaderMobile = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set());
+  const [productCategories, setProductCategories] = useState(defaultProductCategories);
+  const [megaMenuData, setMegaMenuData] = useState(defaultMegaMenuData);
   const { getTotalItems } = useCart();
   const cartCount = getTotalItems();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -66,6 +92,169 @@ const HeaderMobile = () => {
       document.body.style.overflow = '';
     };
   }, [isMenuOpen, isSearchOpen]);
+
+  // Fetch header data from API
+  useEffect(() => {
+    const fetchHeaderData = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_URL_STRAPI || 'http://localhost:1337';
+        const apiToken = process.env.NEXT_PUBLIC_STRAPI_KEY || '';
+        
+        const response = await fetch(`${apiUrl}/api/header?pLevel`, {
+          headers: {
+            'Authorization': `Bearer ${apiToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch header data');
+        }
+
+        const data = await response.json();
+        
+        if (data && typeof data === 'object') {
+          // Map danh-muc-bai-san-pham to megaMenuData for "Sản phẩm" menu
+          if (data['danh-muc-bai-san-pham'] && Array.isArray(data['danh-muc-bai-san-pham'])) {
+            const columns = (data['danh-muc-bai-san-pham'] as Array<{
+              category: string;
+              subcategory: Array<{
+                title: string;
+                slug: string;
+              }>;
+            }>).map((cat) => {
+              return {
+                title: cat.category,
+                icon: getIconFromCategory(cat.category),
+                items: cat.subcategory.map((sub) => ({
+                  name: sub.title,
+                  href: `/danh-muc-bai-viet-san-pham/${sub.slug}`,
+                })),
+              };
+            });
+            
+            setMegaMenuData(prev => ({
+              ...prev,
+              'danh-muc-bai-viet-san-pham': {
+                title: 'Sản phẩm',
+                columns,
+              },
+            }));
+          }
+
+          // Map danh-muc-bai-dich-vu to megaMenuData for "Dịch vụ" menu
+          if (data['danh-muc-bai-dich-vu'] && Array.isArray(data['danh-muc-bai-dich-vu'])) {
+            const columns = (data['danh-muc-bai-dich-vu'] as Array<{
+              category: string;
+              subcategory: Array<{
+                title: string;
+                slug: string;
+              }>;
+            }>).map((cat) => {
+              return {
+                title: cat.category,
+                icon: getIconFromCategory(cat.category),
+                items: cat.subcategory.map((sub) => ({
+                  name: sub.title,
+                  href: `/dich-vu/${sub.slug}`,
+                })),
+              };
+            });
+            
+            setMegaMenuData(prev => ({
+              ...prev,
+              'dich-vu': {
+                title: 'Dịch vụ',
+                columns,
+              },
+            }));
+          }
+
+          // Map danh-muc-san-pham to productCategories for "Danh mục sản phẩm" menu
+          if (data['danh-muc-san-pham'] && Array.isArray(data['danh-muc-san-pham'])) {
+            // Try different API response structures
+            const categories = (data['danh-muc-san-pham'] as Array<{
+              // Structure 1: category/subcategory format (from header API)
+              category?: string;
+              subcategory?: Array<{
+                title: string;
+                slug: string;
+                subcategory?: Array<{
+                  title: string;
+                  slug: string;
+                }>;
+              }>;
+              // Structure 2: tenDanhMuc/danhMucCapHai format (from home API)
+              tenDanhMuc?: string;
+              title?: string;
+              slug?: string;
+              danhMucCapHai?: Array<{
+                tenDanhMuc?: string;
+                title?: string;
+                slug: string;
+                danhMucCapBa?: Array<{
+                  tenDanhMuc?: string;
+                  title?: string;
+                  slug: string;
+                }>;
+              }>;
+            }>).map((cat) => {
+              // Handle Structure 1: category/subcategory
+              if (cat.category && cat.subcategory) {
+                const categorySlug = cat.slug || cat.category.toLowerCase().replace(/\s+/g, '-');
+                return {
+                  id: categorySlug,
+                  name: cat.category,
+                  icon: getIconFromCategory(cat.category),
+                  href: `/san-pham/${categorySlug}`,
+                  children: cat.subcategory.map((sub) => ({
+                    id: sub.slug,
+                    name: sub.title,
+                    children: sub.subcategory ? sub.subcategory.map((subSub) => ({
+                      name: subSub.title,
+                      href: `/san-pham/${subSub.slug}`, // Level 3 uses its own slug
+                    })) : [],
+                  })),
+                };
+              }
+              
+              // Handle Structure 2: tenDanhMuc/danhMucCapHai/danhMucCapBa
+              const categoryName = cat.tenDanhMuc || cat.title || '';
+              const categorySlug = cat.slug || categoryName.toLowerCase().replace(/\s+/g, '-');
+              
+              return {
+                id: categorySlug,
+                name: categoryName,
+                icon: getIconFromCategory(categoryName),
+                href: `/san-pham/${categorySlug}`,
+                children: (cat.danhMucCapHai || []).map((sub) => {
+                  const subName = sub.tenDanhMuc || sub.title || '';
+                  const subSlug = sub.slug;
+                  return {
+                    id: subSlug,
+                    name: subName,
+                    children: (sub.danhMucCapBa || []).map((subSub) => ({
+                      name: subSub.tenDanhMuc || subSub.title || '',
+                      href: `/san-pham/${subSub.slug}`, // Level 3 uses its own slug
+                    })),
+                  };
+                }),
+              };
+            });
+            
+            setProductCategories(categories);
+          }
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[HeaderMobile] Failed to fetch header data, using defaults:', error);
+        }
+        // Use default data if fetch fails
+      }
+    };
+
+    fetchHeaderData();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
