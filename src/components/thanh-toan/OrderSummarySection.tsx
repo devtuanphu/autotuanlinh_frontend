@@ -147,9 +147,20 @@ export default function OrderSummarySection({ customerInfo, paymentMethod }: Ord
         // Show success toast
         showToast('Đặt hàng thành công!', 'success');
         
-        // Clear cart and redirect to thank you page
+        // Set a flag in localStorage to prevent EmptyCartRedirect from interfering
+        // This flag will be checked by EmptyCartRedirect component
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('skipEmptyCartRedirect', 'true');
+        }
+        
+        // Clear cart first (EmptyCartRedirect won't interfere due to flag above)
         clearCart();
-        router.push('/cam-on');
+        
+        // Use window.location.href to ensure redirect always works
+        // Use setTimeout to ensure clearCart completes first
+        setTimeout(() => {
+          window.location.href = '/cam-on';
+        }, 50);
       } else {
         // Show error toast
         showToast(result.message || 'Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại sau.', 'error');

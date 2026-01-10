@@ -38,6 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (Array.isArray(strapiData) && strapiData.length > 0) {
       const product = strapiData[0];
       const seo = product.seo;
+      console.log("sản phẩm detail", product)
       
       if (seo) {
         const seoDataFromApi: SEOData = {
