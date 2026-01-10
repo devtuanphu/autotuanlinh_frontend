@@ -101,9 +101,10 @@ export default async function Page({ params }: PageProps) {
     
     if (strapiData && typeof strapiData === 'object' && 'title' in strapiData) {
       // Map products from san_phams with full API data
+      // Route structure: /chi-tiet-san-pham/[slug]
       const products: ProductItem[] = (strapiData.san_phams || []).map((product) => ({
         name: product.title,
-        href: `/san-pham/${strapiData.parentCategoryLevel1?.slug || 'category'}/${strapiData.parentCategoryLevel2?.slug || 'subcategory'}/${product.slug}`,
+        href: `/chi-tiet-san-pham/${product.slug}`,
         slug: product.slug,
         giaBan: product.giaBan,
         giaGoc: product.giaGoc,

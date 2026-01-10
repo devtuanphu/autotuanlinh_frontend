@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import HeroSection from './HeroSection';
 import FilterSidebar from './FilterSidebar';
 import { CategoryFilter } from './CategoryFilterSection';
@@ -13,20 +13,29 @@ import {
   ProductCategoryData, 
   ITEMS_PER_PAGE, 
   sortOptions, 
-  generateProductFromItem 
+  ProductDetail
 } from '@/lib/data/san-pham';
 
 interface SanPhamPageClientProps {
   categories: ProductCategoryData[];
+  products?: ProductDetail[];
+  totalPages?: number;
+  totalProducts?: number;
+  currentPage?: number;
 }
 
-export default function SanPhamPageClient({ categories }: SanPhamPageClientProps) {
+export default function SanPhamPageClient({ 
+  categories,
+  products: productsFromProps = [],
+  totalPages: totalPagesFromProps = 1,
+  totalProducts: totalProductsFromProps = 0,
+  currentPage: currentPageFromProps = 1,
+}: SanPhamPageClientProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
 
-  // Get pagination from URL params only
-  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  // Get current page from URL params or props
+  const currentPage = parseInt(searchParams.get('page') || String(currentPageFromProps), 10);
 
   // Filters use local state (not URL params)
   const [sortBy, setSortBy] = useState<string>('default');
@@ -34,58 +43,32 @@ export default function SanPhamPageClient({ categories }: SanPhamPageClientProps
   const [priceRangeFilter, setPriceRangeFilter] = useState<{ min: number; max: number } | null>(null);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
 
-  // Generate all products from all categories
+  // Use products from API if available
+  // Note: If products come from API, we use them directly
+  // Categories are still used for filter sidebar
   const allProducts = useMemo(() => {
-    const products: Array<ReturnType<typeof generateProductFromItem> & {
-      category?: {
-        parentId: string;
-        parentName: string;
-        subCategoryId: string;
-        subCategoryName: string;
-      };
-    }> = [];
-    
+    return productsFromProps.length > 0 ? productsFromProps : [];
+  }, [productsFromProps]);
+
+  // Generate category filters with counts
+  // If products come from API, use categories from hardcoded data for filters
+  const categoryFilters = useMemo<CategoryFilter[]>(() => {
+    const filters: CategoryFilter[] = [
+      { id: 'all', name: 'Tất cả danh mục', count: productsFromProps.length > 0 ? totalProductsFromProps : allProducts.length }
+    ];
+
+    // Use categories from props for filter options
+    // Note: Counts may not match exactly if products come from API
     categories.forEach((category) => {
-      category.children?.forEach((subCategory) => {
-        subCategory.children?.forEach((productItem, index) => {
-          const productData = generateProductFromItem(productItem, index, subCategory.id);
-          products.push({
-            ...productData,
-            category: {
-              parentId: category.id,
-              parentName: category.name,
-              subCategoryId: subCategory.id,
-              subCategoryName: subCategory.name,
-            },
-          });
-        });
+      filters.push({
+        id: category.id,
+        name: category.name,
+        count: 0, // Count not available from API pagination
       });
     });
 
-    return products;
-  }, [categories]);
-
-  // Generate category filters with counts
-  const categoryFilters = useMemo<CategoryFilter[]>(() => {
-    const filters: CategoryFilter[] = [
-      { id: 'all', name: 'Tất cả danh mục', count: allProducts.length }
-    ];
-
-    categories.forEach((category) => {
-      const categoryProducts = allProducts.filter(
-        p => p.category?.parentId === category.id
-      );
-      if (categoryProducts.length > 0) {
-        filters.push({
-          id: category.id,
-          name: category.name,
-          count: categoryProducts.length,
-        });
-      }
-    });
-
     return filters;
-  }, [allProducts, categories]);
+  }, [allProducts, categories, productsFromProps.length, totalProductsFromProps]);
 
   // Calculate price range from all products
   const priceRange = useMemo(() => {
@@ -150,13 +133,28 @@ export default function SanPhamPageClient({ categories }: SanPhamPageClientProps
   }, [filteredProducts, sortBy]);
 
   // Calculate pagination
+  // If products come from API, they are already paginated, so use API pagination data
+  // Otherwise, paginate client-side
   const pagination = useMemo(() => {
-    const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const paginatedProducts = sortedProducts.slice(startIndex, endIndex);
-    return { totalPages, startIndex, endIndex, paginatedProducts };
-  }, [sortedProducts, currentPage]);
+    if (productsFromProps.length > 0) {
+      // Products from API are already paginated
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + sortedProducts.length;
+      return { 
+        totalPages: totalPagesFromProps, 
+        startIndex, 
+        endIndex, 
+        paginatedProducts: sortedProducts 
+      };
+    } else {
+      // Client-side pagination for fallback
+      const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const paginatedProducts = sortedProducts.slice(startIndex, endIndex);
+      return { totalPages, startIndex, endIndex, paginatedProducts };
+    }
+  }, [sortedProducts, currentPage, productsFromProps.length, totalPagesFromProps]);
 
   // Update local state when filters change (no URL update, no page reset)
   const handleSortChange = useCallback((sortId: string) => {
@@ -189,24 +187,17 @@ export default function SanPhamPageClient({ categories }: SanPhamPageClientProps
     setRatingFilter(null);
   }, []);
 
-  // Update URL when page changes only
+  // Update URL when page changes and reload page (like tin-tuc page)
   const handlePageChange = useCallback((page: number) => {
     const params = new URLSearchParams();
     params.set('page', page.toString());
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router]);
-
-  // Scroll to top only when page changes (not on filter changes)
-  useEffect(() => {
-    if (currentPage > 1) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [currentPage]);
+    window.location.href = `${pathname}?${params.toString()}`;
+  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <HeroSection totalProducts={allProducts.length} />
+      <HeroSection totalProducts={productsFromProps.length > 0 ? totalProductsFromProps : allProducts.length} />
 
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
@@ -249,7 +240,7 @@ export default function SanPhamPageClient({ categories }: SanPhamPageClientProps
                     totalPages={pagination.totalPages}
                     startIndex={pagination.startIndex}
                     endIndex={pagination.endIndex}
-                    totalItems={sortedProducts.length}
+                    totalItems={productsFromProps.length > 0 ? totalProductsFromProps : sortedProducts.length}
                     onPageChange={handlePageChange}
                   />
                 )}

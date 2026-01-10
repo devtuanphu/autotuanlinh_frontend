@@ -55,7 +55,7 @@ export interface SortOption {
   icon: string;
 }
 
-export const ITEMS_PER_PAGE = 2; // Giảm xuống 2 để dễ thấy phân trang (mỗi subCategory có 3-4 products)
+export const ITEMS_PER_PAGE = 12; // Items per page for product listings
 
 export const sortOptions: SortOption[] = [
   { id: 'default', name: 'Mặc định', icon: 'Grid3x3' },
@@ -161,8 +161,8 @@ export function generateProductFromItem(
   
   // Extract slug from href or use item.slug
   const slug = item.slug || item.href.split('/').pop() || `product-${index}`;
-  // Create href with new structure: /san-pham/[categoryId]/[productId]
-  const detailHref = `/san-pham/${subCategoryId}/${slug}`;
+  // Create href with new structure: /chi-tiet-san-pham/[slug]
+  const detailHref = `/chi-tiet-san-pham/${slug}`;
   
   // Use API image if available, otherwise use placeholder
   let image = `https://picsum.photos/800/500?random=${(subCategoryId.charCodeAt(0) || 0) + index}`;
@@ -283,7 +283,9 @@ export function findProductDetail(
       `;
       
       // Update href to point to detail page
-      const detailHref = `/san-pham/${categoryId}/${productId}`;
+      // Extract slug from productId (could be full href or just slug)
+      const productSlug = productId.includes('/') ? productId.split('/').pop() || productId : productId;
+      const detailHref = `/chi-tiet-san-pham/${productSlug}`;
       
       return {
         ...productData,

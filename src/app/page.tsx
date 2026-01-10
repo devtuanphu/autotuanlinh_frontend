@@ -584,7 +584,7 @@ export default async function HomePageServer() {
           rating: product.rating || 0,
           reviews: product.reviewCount || 0,
           badge: product.badges || undefined,
-          href: product.slug ? `/san-pham/${product.slug}` : '#',
+          href: product.slug ? `/chi-tiet-san-pham/${product.slug}` : '#',
           inStock: true, // Default to true, can be enhanced with API data later
         };
       })
