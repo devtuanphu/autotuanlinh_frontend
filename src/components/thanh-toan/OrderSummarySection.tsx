@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/contexts/ToastContext';
 import Image from 'next/image';
@@ -18,7 +17,6 @@ interface OrderSummarySectionProps {
 
 export default function OrderSummarySection({ customerInfo, paymentMethod }: OrderSummarySectionProps) {
   const { items, getTotalPrice, getTotalItems, clearCart } = useCart();
-  const router = useRouter();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
