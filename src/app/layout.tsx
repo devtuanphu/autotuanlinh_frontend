@@ -4,6 +4,7 @@ import HeaderMobile from "@/components/layout/HeaderMobile";
 import Footer from "@/components/layout/Footer";
 import { CartProvider } from "@/contexts/CartContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import FloatingHotline from "@/components/shared/FloatingHotline";
 import { Roboto } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "../style/global.css";
@@ -110,6 +111,7 @@ export default function RootLayout({
             <HeaderMobile />
             {children}
             <Footer />
+            <FloatingHotline />
           </CartProvider>
         </ToastProvider>
       </body>
