@@ -160,7 +160,7 @@ const FloatingHotline = () => {
             hidden md:block
             absolute inset-0
             rounded-full
-            bg-gradient-to-r from-transparent via-white/20 to-transparent
+           
             translate-x-[-200%]
             group-hover:translate-x-[200%]
             transition-transform duration-1000
