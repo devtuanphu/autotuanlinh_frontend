@@ -9,12 +9,11 @@ import { ProductCategoryData, findProductCategoryDetail, generateProductFromItem
 import 'swiper/css';
 
 interface RelatedProductsProps {
-  currentProductId: string;
-  categoryId: string;
-  categories: ProductCategoryData[];
+  products: any[];
 }
 
 const RelatedProductsNavButtons = () => {
+  // ... (keep as is)
   const swiper = useSwiper();
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
@@ -57,21 +56,8 @@ const RelatedProductsNavButtons = () => {
   );
 };
 
-export default function RelatedProducts({ currentProductId, categoryId, categories }: RelatedProductsProps) {
-  const relatedProducts = useMemo(() => {
-    const categoryDetail = findProductCategoryDetail(categories, categoryId);
-    if (!categoryDetail || !categoryDetail.products) return [];
-
-    // Generate products and filter out current product
-    const products = categoryDetail.products
-      .map((item, index) => generateProductFromItem(item, index, categoryId))
-      .filter((product) => product.id !== currentProductId)
-      .slice(0, 8); // Show more products for carousel
-
-    return products;
-  }, [currentProductId, categoryId, categories]);
-
-  if (relatedProducts.length === 0) {
+export default function RelatedProducts({ products }: RelatedProductsProps) {
+  if (!products || products.length === 0) {
     return null;
   }
 
@@ -98,11 +84,11 @@ export default function RelatedProducts({ currentProductId, categoryId, categori
             delay: 3000,
             disableOnInteraction: false,
           }}
-          loop={relatedProducts.length > 4}
+          loop={products.length > 4}
           className="related-products-swiper pb-12"
         >
           <RelatedProductsNavButtons />
-          {relatedProducts.map((product) => (
+          {products.map((product) => (
             <SwiperSlide key={product.id}>
               <ProductCard {...product} />
             </SwiperSlide>

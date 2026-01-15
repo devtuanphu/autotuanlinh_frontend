@@ -105,7 +105,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                   key={index}
                   className="inline-flex items-center px-3 py-1 bg-brand-accent/10 text-brand-accent rounded-full text-xs font-semibold hover:bg-brand-accent hover:text-white transition-colors"
                 >
-                  #{tag}
+                  {tag}
                 </span>
               ))}
             </div>

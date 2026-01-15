@@ -695,21 +695,8 @@ export default async function HomePageServer() {
         <GallerySection title={galleryTitle} subtitle={gallerySubtitle} images={galleryImages} />
         <BrandsSection title={brandsTitle} subtitle={brandsSubtitle} brands={brands} />
         <ProcessSection title={processTitle} subtitle={processSubtitle} steps={processSteps} />
-        <FAQSection title={faqTitle} subtitle={faqSubtitle} faqs={faqs} />
         <TestimonialsSection title={testimonialsTitle} subtitle={testimonialsSubtitle} testimonials={testimonials} />
-        <ContactInfoSection title={contactTitle} subtitle={contactSubtitle} contactInfos={contactInfos} />
-        <NewsletterSection 
-          title={newsletterTitle}
-          subtitle={newsletterSubtitle}
-          buttonText={newsletterButtonText}
-          privacyText={newsletterPrivacyText}
-        />
-        <CTASection 
-          title={ctaTitle} 
-          subtitle={ctaSubtitle}
-          primaryButton={ctaPrimaryButton}
-          secondaryButton={ctaSecondaryButton}
-        />
+    
       </main>
     </>
   );

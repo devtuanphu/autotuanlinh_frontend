@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData, trendingSearches } from './constants/headerData';
 import { useCart } from '@/contexts/CartContext';
+import { searchProducts, getStrapiImageUrl } from '@/lib/api/strapi';
+import { Loader2 } from 'lucide-react';
 
 // Helper to get icon from category name
 const getIconFromCategory = (category: string): LucideIcon => {
@@ -49,6 +51,8 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const { getTotalItems } = useCart();
   const cartCount = getTotalItems();
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -362,12 +366,35 @@ const Header = () => {
     fetchHeaderData();
   }, []);
 
+  // Live search with debouncing
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.trim().length >= 2) {
+        setIsSearching(true);
+        try {
+          const results = await searchProducts(searchQuery, 6);
+          setSearchResults(results);
+        } catch (error) {
+          console.error('Search error:', error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setIsSearchDropdownOpen(false);
-      window.location.href = `/tim-kiem?q=${encodeURIComponent(searchQuery)}`;
+      window.location.href = `/ket-qua-tim-kiem/${encodeURIComponent(searchQuery)}`;
     }
   };
 
@@ -392,7 +419,7 @@ const Header = () => {
   const handleTrendingClick = (searchTerm: string) => {
     setSearchQuery(searchTerm);
     setIsSearchDropdownOpen(false);
-    window.location.href = `/tim-kiem?q=${encodeURIComponent(searchTerm)}`;
+    window.location.href = `/ket-qua-tim-kiem/${encodeURIComponent(searchTerm)}`;
   };
 
   const handleMegaMenuEnter = (key: string) => {
@@ -695,34 +722,69 @@ const Header = () => {
               
               {/* Content */}
               <div className="py-3 px-2">
-                {/* Tiêu đề */}
-                <h3 className="text-base font-bold text-gray-900 mb-2.5 flex items-center gap-1.5 px-2">
-                  Xu hướng tìm kiếm <span className="text-lg">🔥</span>
-                </h3>
-                
-                {/* Danh sách 2 cột */}
-                <div className="grid grid-cols-2 gap-2">
-                  {trendingSearches.map((item, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleTrendingClick(item.name)}
-                      className="flex items-center gap-2 px-2.5 py-2 rounded-md hover:bg-gray-50 transition-colors text-left group"
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-md overflow-hidden bg-gray-100">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          width={40}
-                          height={40}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
+                {/* Kết quả tìm kiếm nhanh */}
+                {searchQuery.trim().length >= 2 && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-gray-500 mb-2 px-2 uppercase tracking-wider">
+                      Sản phẩm gợi ý
+                    </h3>
+                    
+                    {isSearching ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 text-brand-accent animate-spin" />
                       </div>
-                      <span className="text-xs text-gray-700 group-hover:text-brand-accent transition-colors font-medium flex-1 leading-tight">
-                        {item.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="space-y-1">
+                        {searchResults.map((product) => (
+                          <Link
+                            key={product.id}
+                            href={`/chi-tiet-san-pham/${product.slug}`}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-all group"
+                            onClick={() => setIsSearchDropdownOpen(false)}
+                          >
+                            <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                              <Image
+                                src={product.anhSanPham && product.anhSanPham.length > 0 
+                                  ? getStrapiImageUrl(product.anhSanPham[0]) 
+                                  : `https://picsum.photos/100/100?random=${product.id}`}
+                                alt={product.title}
+                                width={48}
+                                height={48}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-medium text-gray-900 truncate group-hover:text-brand-accent transition-colors">
+                                {product.title}
+                              </h4>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-brand-accent font-bold text-sm">
+                                  {product.giaBan ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.giaBan) : 'Liên hệ'}
+                                </span>
+                                {product.giaGoc && product.giaGoc > (product.giaBan || 0) && (
+                                  <span className="text-gray-400 text-xs line-through">
+                                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.giaGoc)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-4 px-2 text-sm text-gray-500 italic">
+                        Không tìm thấy sản phẩm nào phù hợp
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tiêu đề cho Trending */}
+                {!isSearching && searchQuery.trim().length === 0 && (
+                  <div className="py-8 px-4 text-center text-gray-500 text-sm italic">
+                    Nhập từ khóa để tìm kiếm sản phẩm...
+                  </div>
+                )}
               </div>
             </div>
           </div>

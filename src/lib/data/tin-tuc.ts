@@ -13,5 +13,5 @@ export const tinTucCategories: Category[] = [
   { id: 'Dịch vụ', name: 'Dịch vụ', count: 0 },
 ];
 
-export const ITEMS_PER_PAGE = 8;
+export const ITEMS_PER_PAGE = 24;
 

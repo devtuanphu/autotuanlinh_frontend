@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import React, { useMemo } from 'react';
+import { useParams, useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ArticleListLayout from '@/components/shared/ArticleListLayout';
 import SearchBarSection from './SearchBarSection';
 import FilterSection from './FilterSection';
@@ -11,71 +11,23 @@ import PaginationSection from './PaginationSection';
 import { SearchResult, ITEMS_PER_PAGE, sortOptions } from '@/lib/data/ket-qua-tim-kiem';
 
 interface KetQuaTimKiemPageClientProps {
-  searchResults: SearchResult[];
+  initialResults: SearchResult[];
+  query: string;
+  currentPage: number;
+  initialType: string;
+  initialSort: string;
 }
 
-export default function KetQuaTimKiemPageClient({ searchResults: allResults }: KetQuaTimKiemPageClientProps) {
-  const params = useParams();
+export default function KetQuaTimKiemPageClient({ 
+  initialResults: allResults, 
+  query: searchQuery,
+  currentPage,
+  initialType,
+  initialSort
+}: KetQuaTimKiemPageClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  
-  // Lấy từ khóa từ params hoặc searchParams
-  const searchQuery = useMemo(() => {
-    const queryFromParams = params?.result ? decodeURIComponent(params.result as string) : '';
-    const queryFromSearch = searchParams?.get('q') || '';
-    return queryFromSearch || queryFromParams || '';
-  }, [params, searchParams]);
-
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('relevance');
-  const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // Filter và sort
-  const filteredResults = useMemo(() => {
-    let filtered = allResults;
-
-    // Filter theo type
-    if (selectedType !== 'all') {
-      filtered = filtered.filter(item => item.type === selectedType);
-    }
-
-    // Sort
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'relevance':
-          return (b.relevance || 0) - (a.relevance || 0);
-        case 'newest':
-          const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-          const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-          return dateB - dateA;
-        case 'popular':
-          return (b.views || 0) - (a.views || 0);
-        default:
-          return 0;
-      }
-    });
-
-    return sorted;
-  }, [allResults, selectedType, sortBy]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedResults = filteredResults.slice(startIndex, endIndex);
-
-  // Reset về trang 1 khi filter/sort thay đổi
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedType, sortBy, searchQuery]);
-
-  // Scroll to top khi đổi trang
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentPage]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
 
   // Highlight từ khóa trong text
   const highlightText = (text: string, query: string): React.ReactNode => {
@@ -90,6 +42,63 @@ export default function KetQuaTimKiemPageClient({ searchResults: allResults }: K
         part
       )
     );
+  };
+
+  // Filter và sort logic (moved to memo for performance, but source of truth is props/URL)
+  const filteredResults = useMemo(() => {
+    let filtered = allResults;
+
+    // Filter theo type
+    if (initialType !== 'all') {
+      filtered = filtered.filter(item => item.type === initialType);
+    }
+
+    // Sort
+    const sorted = [...filtered].sort((a, b) => {
+      switch (initialSort) {
+        case 'relevance':
+          return (b.relevance || 0) - (a.relevance || 0);
+        case 'newest':
+          const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+          const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+          return dateB - dateA;
+        case 'popular':
+          return (b.views || 0) - (a.views || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [allResults, initialType, initialSort]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedResults = filteredResults.slice(startIndex, endIndex);
+
+  const updateURL = (params: { page?: number; type?: string; sort?: string }) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    
+    if (params.page !== undefined) newParams.set('page', params.page.toString());
+    if (params.type !== undefined) newParams.set('type', params.type);
+    if (params.sort !== undefined) newParams.set('sort', params.sort);
+    
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: true });
+  };
+
+  const handlePageChange = (page: number) => {
+    updateURL({ page });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleTypeChange = (type: string) => {
+    updateURL({ type, page: 1 });
+  };
+
+  const handleSortChange = (sort: string) => {
+    updateURL({ sort, page: 1 });
   };
 
   const typeFilters = useMemo(() => [
@@ -116,11 +125,11 @@ export default function KetQuaTimKiemPageClient({ searchResults: allResults }: K
         searchQuery={searchQuery}
         typeFilters={typeFilters}
         sortOptions={sortOptions}
-        selectedType={selectedType}
-        sortBy={sortBy}
+        selectedType={initialType}
+        sortBy={initialSort}
         totalCount={filteredResults.length}
-        onTypeChange={setSelectedType}
-        onSortChange={setSortBy}
+        onTypeChange={handleTypeChange}
+        onSortChange={handleSortChange}
         highlightText={highlightText}
       />
       {filteredResults.length === 0 ? (
@@ -145,4 +154,3 @@ export default function KetQuaTimKiemPageClient({ searchResults: allResults }: K
     </ArticleListLayout>
   );
 }
-

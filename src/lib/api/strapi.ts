@@ -341,3 +341,118 @@ export async function createOrder(orderData: CreateOrderData): Promise<{ success
   }
 }
 
+/**
+ * Post product review
+ */
+export interface ReviewData {
+  customerName: string;
+  email: string;
+  rating: number;
+  content: string;
+}
+
+export async function postProductReview(slug: string, reviewData: ReviewData): Promise<{ 
+  success: boolean; 
+  data?: { 
+    newReview: {
+      customerName: string;
+      email: string;
+      rating: number;
+      content: string;
+      isApproved: boolean;
+      createdAt?: string;
+    }; 
+    rating: number; 
+    reviewCount: number; 
+  }; 
+  message?: string 
+}> {
+  try {
+    const response = await fetch(`${STRAPI_URL}/api/san-phams/${slug}/review`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(STRAPI_API_TOKEN && { Authorization: `Bearer ${STRAPI_API_TOKEN}` }),
+      },
+      body: JSON.stringify({
+        data: reviewData,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const json = await response.json();
+    return { success: true, data: json.data, message: 'Gửi đánh giá thành công!' };
+  } catch (error) {
+    console.error('Post review error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.',
+    };
+  }
+}
+
+/**
+ * Fetch related products for a given product slug
+ */
+export async function fetchRelatedProducts<T = Record<string, unknown>>(
+  slug: string,
+  cacheConfig: { revalidate?: number } = { revalidate: 60 }
+): Promise<T[]> {
+  try {
+    const url = `${STRAPI_URL}/api/san-phams/${slug}/related`;
+    console.log(`[Strapi] Fetching related products from: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(STRAPI_API_TOKEN && { Authorization: `Bearer ${STRAPI_API_TOKEN}` }),
+      },
+      next: cacheConfig,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Strapi API error: ${response.status} ${response.statusText}`);
+    }
+
+    const json = await response.json();
+    return json.data || [];
+  } catch (error) {
+    console.error(`[Strapi] Failed to fetch related products for ${slug}:`, error);
+    return [];
+  }
+}
+
+/**
+ * Search products by title
+ */
+export async function searchProducts(query: string, limit: number = 5): Promise<any[]> {
+  if (!query || query.trim().length === 0) return [];
+  
+  try {
+    const encodedQuery = encodeURIComponent(query);
+    const url = `${STRAPI_URL}/api/san-phams?filters[title][$containsi]=${encodedQuery}&populate=anhSanPham&pagination[pageSize]=${limit}`;
+    
+    // We don't use cache for searching to get real-time results
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(STRAPI_API_TOKEN && { Authorization: `Bearer ${STRAPI_API_TOKEN}` }),
+      },
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error(`Strapi API error: ${response.status} ${response.statusText}`);
+    }
+
+    const json = await response.json();
+    return json.data || [];
+  } catch (error) {
+    console.error(`[Strapi] Search failed for query "${query}":`, error);
+    return [];
+  }
+}

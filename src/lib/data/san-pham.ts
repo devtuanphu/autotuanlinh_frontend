@@ -55,7 +55,7 @@ export interface SortOption {
   icon: string;
 }
 
-export const ITEMS_PER_PAGE = 12; // Items per page for product listings
+export const ITEMS_PER_PAGE = 24; // Items per page for product listings
 
 export const sortOptions: SortOption[] = [
   { id: 'default', name: 'Mặc định', icon: 'Grid3x3' },

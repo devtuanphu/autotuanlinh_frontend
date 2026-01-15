@@ -9,7 +9,7 @@ import RelatedProducts from '@/components/san-pham/RelatedProducts';
 import ProductNotFoundSection from '@/components/san-pham/ProductNotFoundSection';
 import { productCategories } from '@/components/layout/constants/headerData';
 import { convertProductCategoriesToData, ProductDetail } from '@/lib/data/san-pham';
-import { fetchStrapi, getStrapiImageUrl } from '@/lib/api/strapi';
+import { fetchStrapi, getStrapiImageUrl, fetchRelatedProducts } from '@/lib/api/strapi';
 import { Car, Wrench, Settings, Film, Music, Sparkles } from 'lucide-react';
 
 interface PageProps {
@@ -280,6 +280,28 @@ export default async function Page({ params }: PageProps) {
     { name: product.name, href: `/chi-tiet-san-pham/${params.slug}` },
   ];
 
+  // Fetch related products
+  let relatedProductsMapped: any[] = [];
+  try {
+    const relatedProductsData = await fetchRelatedProducts(params.slug, { revalidate: revalidateTime });
+    relatedProductsMapped = (relatedProductsData || []).map((p: any) => ({
+      id: String(p.id),
+      name: p.title,
+      price: p.giaBan || 0,
+      originalPrice: p.giaGoc && p.giaGoc > (p.giaBan || 0) ? p.giaGoc : undefined,
+      image: p.anhSanPham && p.anhSanPham.length > 0 
+        ? getStrapiImageUrl(p.anhSanPham[0]) 
+        : `https://picsum.photos/400/300?random=${p.id}`,
+      rating: p.rating || 0,
+      reviews: p.reviewCount || 0,
+      badge: p.badges || undefined,
+      href: `/chi-tiet-san-pham/${p.slug}`,
+      inStock: true,
+    }));
+  } catch (error) {
+    console.error('[chi-tiet-san-pham/[slug]] Failed to fetch related products:', error);
+  }
+
   return (
     <ProductDetailLayout breadcrumbs={breadcrumbs}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
@@ -295,21 +317,11 @@ export default async function Page({ params }: PageProps) {
       <ProductComments 
         productId={product.id}
         productName={product.name}
+        productSlug={params.slug}
         initialComments={mappedReviews}
       />
       
-      <RelatedProducts 
-        currentProductId={product.id}
-        categoryId={category?.subCategoryId || ''}
-        categories={convertProductCategoriesToData(productCategories, new Map([
-          [Car, 'Car'],
-          [Wrench, 'Wrench'],
-          [Settings, 'Settings'],
-          [Film, 'Film'],
-          [Music, 'Music'],
-          [Sparkles, 'Sparkles'],
-        ]))}
-      />
+      <RelatedProducts products={relatedProductsMapped} />
     </ProductDetailLayout>
   );
 }

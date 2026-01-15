@@ -27,7 +27,7 @@ export interface SortOption {
   icon: string;
 }
 
-export const ITEMS_PER_PAGE = 12;
+export const ITEMS_PER_PAGE = 24;
 
 export const sortOptions: SortOption[] = [
   { id: 'relevance', name: 'Liên quan nhất', icon: 'TrendingUp' },

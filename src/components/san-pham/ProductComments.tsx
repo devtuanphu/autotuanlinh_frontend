@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Star, Send, User, Calendar, ThumbsUp, MessageSquare } from 'lucide-react';
+import { Star, Send, User, Calendar, ThumbsUp, MessageSquare, Loader2, CheckCircle2 } from 'lucide-react';
+import { postProductReview } from '@/lib/api/strapi';
 
 interface Comment {
   id: string;
@@ -17,16 +18,24 @@ interface Comment {
 interface ProductCommentsProps {
   productId: string;
   productName: string;
+  productSlug: string;
   initialComments?: Comment[];
 }
 
 export default function ProductComments({ 
   productId, 
   productName,
+  productSlug,
   initialComments = [] 
 }: ProductCommentsProps) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [showForm, setShowForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -37,8 +46,8 @@ export default function ProductComments({
   const [helpfulComments, setHelpfulComments] = useState<Set<string>>(new Set());
 
   // Generate mock comments if none provided
-  // Use deterministic values to avoid hydration issues
   const generateMockComments = useCallback((): Comment[] => {
+    // ... (rest of the mock generation logic remains same)
     const mockNames = ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Thị D', 'Hoàng Văn E'];
     const mockComments = [
       'Sản phẩm rất tốt, chất lượng cao, đúng như mô tả. Tôi rất hài lòng với sản phẩm này.',
@@ -48,15 +57,11 @@ export default function ProductComments({
       'Sản phẩm tốt, nhưng cần cải thiện thêm về bao bì đóng gói.',
     ];
 
-    // Use productId as seed for deterministic generation
     const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-    // Format date consistently using a fixed base date to avoid timezone issues
     const formatDate = (daysAgo: number) => {
-      // Use a fixed base date (2024-01-01) to ensure consistency
       const baseDate = new Date('2024-01-01T00:00:00Z');
       baseDate.setDate(baseDate.getDate() - daysAgo);
-      // Use consistent format: DD/MM/YYYY
       const day = String(baseDate.getUTCDate()).padStart(2, '0');
       const month = String(baseDate.getUTCMonth() + 1).padStart(2, '0');
       const year = baseDate.getUTCFullYear();
@@ -64,15 +69,10 @@ export default function ProductComments({
     };
 
     return Array.from({ length: 8 }, (_, i) => {
-      // Deterministic rating: 4 or 5 based on index and seed
       const ratingSeed = (seed + i * 7) % 2;
-      const rating = 4 + ratingSeed; // 4 or 5
-      
-      // Deterministic helpful count
+      const rating = 4 + ratingSeed; 
       const helpfulSeed = (seed + i * 11) % 20;
-      const helpful = 1 + helpfulSeed; // 1-20
-      
-      // Deterministic verified status
+      const helpful = 1 + helpfulSeed;
       const verifiedSeed = (seed + i * 13) % 2;
       const verified = verifiedSeed === 0;
 
@@ -82,15 +82,13 @@ export default function ProductComments({
         email: `user${i + 1}@example.com`,
         rating,
         content: mockComments[i % mockComments.length],
-        date: formatDate(i), // Days ago
+        date: formatDate(i),
         helpful,
         verified,
       };
     });
   }, [productId]);
 
-  // Use useMemo to ensure consistent generation between server and client
-  // generateMockComments already depends on productId via useCallback
   const allComments = useMemo(() => {
     return comments.length > 0 ? comments : generateMockComments();
   }, [comments, generateMockComments]);
@@ -101,45 +99,77 @@ export default function ProductComments({
       : allComments;
   }, [allComments, filterRating]);
 
-  // Calculate average rating consistently to avoid floating point issues
   const averageRating = useMemo(() => {
     if (allComments.length === 0) return 0;
     const sum = allComments.reduce((acc, c) => acc + c.rating, 0);
-    // Use integer arithmetic to avoid floating point precision issues
     const avg = Math.round((sum / allComments.length) * 10) / 10;
     return avg;
   }, [allComments]);
 
-  // Calculate rating distribution consistently
   const ratingDistribution = useMemo(() => {
     return [5, 4, 3, 2, 1].map(rating => {
       const count = allComments.filter(c => c.rating === rating).length;
       const percentage = allComments.length > 0
-        ? Math.round((count / allComments.length) * 1000) / 10 // Round to 1 decimal
+        ? Math.round((count / allComments.length) * 1000) / 10
         : 0;
-      return {
-        rating,
-        count,
-        percentage,
-      };
+      return { rating, count, percentage };
     });
   }, [allComments]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newComment: Comment = {
-      id: `comment-${Date.now()}`,
-      name: formData.name,
-      email: formData.email,
-      rating: formData.rating,
-      content: formData.content,
-      date: new Date().toLocaleDateString('vi-VN'),
-      helpful: 0,
-      verified: false,
-    };
-    setComments([newComment, ...comments]);
-    setFormData({ name: '', email: '', rating: 5, content: '' });
-    setShowForm(false);
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+
+    try {
+      const result = await postProductReview(productSlug, {
+        customerName: formData.name,
+        email: formData.email,
+        rating: formData.rating,
+        content: formData.content,
+      });
+
+      if (result.success && result.data) {
+        setSubmitStatus({
+          type: 'success',
+          message: 'Cảm ơn bạn! Đánh giá của bạn đã được gửi và đang chờ phê duyệt.',
+        });
+        
+        // Add new review to list if it's already approved (based on API response)
+        if (result.data.newReview.isApproved) {
+          const newComment: Comment = {
+            id: `comment-${Date.now()}`,
+            name: result.data.newReview.customerName,
+            email: result.data.newReview.email,
+            rating: result.data.newReview.rating,
+            content: result.data.newReview.content,
+            date: new Date().toLocaleDateString('vi-VN'),
+            helpful: 0,
+            verified: true,
+          };
+          setComments([newComment, ...comments]);
+        }
+        
+        // Clear form after delay
+        setTimeout(() => {
+          setFormData({ name: '', email: '', rating: 5, content: '' });
+          setShowForm(false);
+          setSubmitStatus({ type: null, message: '' });
+        }, 3000);
+      } else {
+        setSubmitStatus({
+          type: 'error',
+          message: result.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.',
+        });
+      }
+    } catch (error) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Có lỗi xảy ra khi kết nối máy chủ.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleHelpful = (commentId: string) => {
@@ -242,9 +272,10 @@ export default function ProductComments({
                     <input
                       type="text"
                       required
+                      disabled={isSubmitting}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent focus:border-transparent disabled:bg-gray-100"
                       placeholder="Nhập tên của bạn"
                     />
                   </div>
@@ -255,9 +286,10 @@ export default function ProductComments({
                     <input
                       type="email"
                       required
+                      disabled={isSubmitting}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent focus:border-transparent disabled:bg-gray-100"
                       placeholder="your@email.com"
                     />
                   </div>
@@ -272,8 +304,9 @@ export default function ProductComments({
                       <button
                         key={rating}
                         type="button"
+                        disabled={isSubmitting}
                         onClick={() => setFormData({ ...formData, rating })}
-                        className="focus:outline-none"
+                        className="focus:outline-none disabled:cursor-not-allowed"
                       >
                         <Star
                           size={32}
@@ -297,29 +330,53 @@ export default function ProductComments({
                   </label>
                   <textarea
                     required
+                    disabled={isSubmitting}
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                     rows={5}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-accent focus:border-transparent disabled:bg-gray-100"
                     placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
                   />
                 </div>
 
+                {submitStatus.type && (
+                  <div className={`p-4 rounded-lg flex items-center gap-3 ${
+                    submitStatus.type === 'success' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {submitStatus.type === 'success' ? <CheckCircle2 size={20} /> : null}
+                    <span className="text-sm font-medium">{submitStatus.message}</span>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-3">
                   <button
                     type="submit"
-                    className="bg-brand-accent text-white px-6 py-2 rounded-lg font-semibold hover:bg-brand-accent/90 transition-colors flex items-center gap-2"
+                    disabled={isSubmitting}
+                    className="bg-brand-accent text-white px-6 py-2 rounded-lg font-semibold hover:bg-brand-accent/90 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    <Send size={18} />
-                    Gửi đánh giá
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        Đang gửi...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={18} />
+                        Gửi đánh giá
+                      </>
+                    )}
                   </button>
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => {
                       setShowForm(false);
                       setFormData({ name: '', email: '', rating: 5, content: '' });
+                      setSubmitStatus({ type: null, message: '' });
                     }}
-                    className="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     Hủy
                   </button>
