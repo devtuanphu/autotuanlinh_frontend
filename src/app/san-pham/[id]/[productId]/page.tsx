@@ -9,7 +9,7 @@ import RelatedProducts from '@/components/san-pham/RelatedProducts';
 import NotFoundSection from '@/components/san-pham/NotFoundSection';
 import { productCategories } from '@/components/layout/constants/headerData';
 import { convertProductCategoriesToData, ProductDetail } from '@/lib/data/san-pham';
-import { fetchStrapi, getStrapiImageUrl } from '@/lib/api/strapi';
+import { fetchStrapi, getStrapiImageUrl, fetchRelatedProducts } from '@/lib/api/strapi';
 import { Car, Wrench, Settings, Film, Music, Sparkles } from 'lucide-react';
 
 interface PageProps {
@@ -257,6 +257,40 @@ export default async function Page({ params }: PageProps) {
     }
   }
 
+  // Fetch related products
+  interface StrapiProduct {
+    id: number | string;
+    title: string;
+    giaBan?: number;
+    giaGoc?: number;
+    anhSanPham?: Array<{ url: string }>;
+    rating?: number;
+    reviewCount?: number;
+    badges?: string;
+    slug?: string;
+  }
+  
+  let relatedProductsMapped: Record<string, unknown>[] = [];
+  try {
+    const relatedProductsData = await fetchRelatedProducts(params.productId, { revalidate: revalidateTime });
+    relatedProductsMapped = (relatedProductsData as unknown as StrapiProduct[] || []).map((p) => ({
+      id: String(p.id),
+      name: p.title,
+      price: p.giaBan || 0,
+      originalPrice: p.giaGoc && p.giaGoc > (p.giaBan || 0) ? p.giaGoc : undefined,
+      image: p.anhSanPham && p.anhSanPham.length > 0 
+        ? getStrapiImageUrl(p.anhSanPham[0]) 
+        : `https://picsum.photos/400/300?random=${p.id}`,
+      rating: p.rating || 0,
+      reviews: p.reviewCount || 0,
+      badge: p.badges || undefined,
+      href: `/san-pham/${params.id}/${p.slug}`,
+      inStock: true,
+    }));
+  } catch (error) {
+    console.error('[san-pham/[id]/[productId]] Failed to fetch related products:', error);
+  }
+
   if (!product) {
     return <NotFoundSection />;
   }
@@ -284,21 +318,11 @@ export default async function Page({ params }: PageProps) {
       <ProductComments 
         productId={product.id}
         productName={product.name}
+        productSlug={params.productId}
         initialComments={mappedReviews}
       />
       
-      <RelatedProducts 
-        currentProductId={product.id}
-        categoryId={category?.subCategoryId || ''}
-        categories={convertProductCategoriesToData(productCategories, new Map([
-          [Car, 'Car'],
-          [Wrench, 'Wrench'],
-          [Settings, 'Settings'],
-          [Film, 'Film'],
-          [Music, 'Music'],
-          [Sparkles, 'Sparkles'],
-        ]))}
-      />
+      <RelatedProducts products={relatedProductsMapped} />
     </ProductDetailLayout>
   );
 }

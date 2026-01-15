@@ -11,12 +11,8 @@ import LatestNewsSection from '@/components/home/LatestNewsSection';
 import BrandsSection from '@/components/home/BrandsSection';
 import ProcessSection from '@/components/home/ProcessSection';
 import GallerySection from '@/components/home/GallerySection';
-import FAQSection from '@/components/home/FAQSection';
-import PromoSection from '@/components/home/PromoSection';
-import NewsletterSection from '@/components/home/NewsletterSection';
-import ContactInfoSection from '@/components/home/ContactInfoSection';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
-import CTASection from '@/components/home/CTASection';
+import PromoSection from '@/components/home/PromoSection';
 import { 
   homeFeatures, 
   homeProducts, 
@@ -28,9 +24,7 @@ import {
   homeBrands,
   homeProcessSteps,
   homeGalleryImages,
-  homeFAQs,
-  homePromos,
-  homeContactInfos
+  homePromos
 } from '@/lib/data/home';
 import { allArticles } from '@/lib/data/articles';
 import { fetchStrapi, getStrapiImageUrl } from '@/lib/api/strapi';
@@ -45,12 +39,11 @@ export async function generateMetadata(): Promise<Metadata> {
     const homeData = await fetchStrapi<{ seo?: SEOData }>(STRAPI_ENDPOINTS.home);
     
     // Map Strapi SEO data to SEOData format
-    // Strapi returns: seo.metaTitle, seo.metaDescription, seo.metaKeywords, etc.
     if (homeData?.seo) {
       const seo = homeData.seo as {
         metaTitle?: string;
         metaDescription?: string;
-        metaKeywords?: string; // Note: metaKeywords (not metakeywords)
+        metaKeywords?: string;
         canonicalUrl?: string;
         ogTitle?: string;
         ogDescription?: string;
@@ -77,10 +70,8 @@ export async function generateMetadata(): Promise<Metadata> {
         };
       };
       
-      // Helper to get image URL from Strapi image object
       const getImageUrl = (image: typeof seo.ogImage): string | undefined => {
         if (!image) return undefined;
-        if (typeof image === 'string') return image;
         return image.url || image.formats?.large?.url || image.formats?.medium?.url;
       };
       
@@ -89,7 +80,7 @@ export async function generateMetadata(): Promise<Metadata> {
         description: seo.metaDescription || seoData.home.description,
         keywords: seo.metaKeywords 
           ? (typeof seo.metaKeywords === 'string' 
-              ? seo.metaKeywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+              ? seo.metaKeywords.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0)
               : Array.isArray(seo.metaKeywords) 
                 ? seo.metaKeywords 
                 : seoData.home.keywords)
@@ -109,13 +100,11 @@ export async function generateMetadata(): Promise<Metadata> {
       };
     }
   } catch (error) {
-    // Silently fallback to hardcoded SEO data
     if (process.env.NODE_ENV === 'development') {
       console.warn('[Home] Failed to fetch SEO from Strapi, using fallback:', error);
     }
   }
   
-  // Use Strapi SEO data if available, otherwise use fallback
   const finalSeoData: SEOData = seoDataFromApi || {
     ...seoData.home,
     openGraph: undefined,
@@ -127,26 +116,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePageServer() {
   const structuredData = generateStructuredData();
-  
-  // Fetch home data from Strapi API
-  // Use shorter revalidate in development to see changes faster
   const revalidateTime = process.env.NODE_ENV === 'development' ? 0 : 60;
   
   let homeData = null;
   try {
     homeData = await fetchStrapi(STRAPI_ENDPOINTS.home, {}, { revalidate: revalidateTime });
-    console.log('[Home] Fetched data:', homeData);
-    if (homeData && typeof homeData === 'object' && 'heroSlider' in homeData) {
-      const heroSlider = (homeData as { heroSlider?: unknown[] }).heroSlider;
-      console.log(`[Home] heroSlider items: ${heroSlider?.length || 0}`);
-    }
   } catch (error) {
     console.warn('[Home] Failed to fetch from Strapi, using fallback data:', error);
   }
   
-  // Use Strapi data if available, otherwise use fallback
-  // Map Strapi data structure to component props
-  // Strapi structure: featureCards, statsSection.statCards, whyChooseUs.featureCards, etc.
   const strapiData = homeData as {
     heroSlider?: Array<{
       id: number | string;
@@ -218,16 +196,6 @@ export default async function HomePageServer() {
         icon?: string | null;
       }>;
     };
-    faqSection?: {
-      title?: string;
-      subtitle?: string;
-      icon?: string | null;
-      faqItems?: Array<{
-        id: number | string;
-        question: string;
-        answer: string;
-      }>;
-    };
     testimonialsSection?: {
       title?: string;
       subtitle?: string;
@@ -245,18 +213,6 @@ export default async function HomePageServer() {
             thumbnail?: { url?: string };
           };
         };
-      }>;
-    };
-    contactSection?: {
-      title?: string;
-      subtitle?: string;
-      contactInfoCards?: Array<{
-        id: number | string;
-        title: string;
-        details: string;
-        ctaText?: string;
-        ctaUrl?: string;
-        icon?: string | null;
       }>;
     };
     professionalServicesSection?: {
@@ -288,19 +244,12 @@ export default async function HomePageServer() {
       subtitle?: string;
       products?: Array<{
         id: number | string;
-        documentId?: string;
         title: string;
         giaBan: number;
         giaGoc?: number | null;
         anhSanPham?: Array<{
           id: number;
           url?: string;
-          formats?: {
-            large?: { url?: string };
-            medium?: { url?: string };
-            small?: { url?: string };
-            thumbnail?: { url?: string };
-          };
         }> | null;
         rating?: number | null;
         reviewCount?: number | null;
@@ -308,33 +257,12 @@ export default async function HomePageServer() {
         slug?: string;
       }>;
     };
-    ctaSection?: {
-      title?: string;
-      subtitle?: string;
-      primaryButton?: {
-        id?: number | string;
-        text: string;
-        url?: string;
-        icon?: string;
-        style?: string;
-      };
-      secondaryButton?: {
-        id?: number | string;
-        text: string;
-        url?: string;
-        icon?: string;
-        style?: string;
-      };
-    };
     latestNewsSection?: {
       title?: string;
       subtitle?: string;
       viewAllButton?: {
-        id?: number | string;
         text: string;
         url?: string;
-        icon?: string;
-        style?: string;
       };
       blogs?: Array<{
         id: number | string;
@@ -343,12 +271,6 @@ export default async function HomePageServer() {
         moTaNgan?: string;
         avatar?: {
           url?: string;
-          formats?: {
-            large?: { url?: string };
-            medium?: { url?: string };
-            small?: { url?: string };
-            thumbnail?: { url?: string };
-          };
         } | null;
         publishedAt?: string;
         hashtag?: string | null;
@@ -367,33 +289,9 @@ export default async function HomePageServer() {
         moTa?: string;
         anhDanhMuc?: {
           url?: string;
-          formats?: {
-            large?: { url?: string };
-            medium?: { url?: string };
-            small?: { url?: string };
-            thumbnail?: { url?: string };
-          };
         } | null;
-        danhMucCapHai?: Array<{
-          id: number | string;
-          title: string;
-          slug: string;
-          danhMucCapBa?: Array<{
-            id: number | string;
-            title: string;
-            slug: string;
-          }>;
-        }>;
       }>;
     };
-    newsletterSection?: {
-      title?: string;
-      subtitle?: string;
-      buttonText?: string;
-      privacyText?: string;
-      icon?: string | null;
-    };
-    categories?: Array<unknown>;
     specialPromotionsSection?: {
       title?: string;
       subtitle?: string;
@@ -401,26 +299,17 @@ export default async function HomePageServer() {
         id: number | string;
         badge?: string | null;
         discount: string;
-        isFree?: boolean;
         endDate?: string;
         title: string;
         description: string;
         link?: string;
-        buttonText?: string;
         image?: {
           url?: string;
-          formats?: {
-            large?: { url?: string };
-            medium?: { url?: string };
-            small?: { url?: string };
-            thumbnail?: { url?: string };
-          };
         };
       }>;
     };
   } | null;
   
-  // Map heroSlider data
   const heroSlides = strapiData?.heroSlider && strapiData.heroSlider.length > 0
     ? strapiData.heroSlider.map((slide) => ({
         id: slide.id,
@@ -434,10 +323,9 @@ export default async function HomePageServer() {
       }))
     : undefined;
   
-  // Map Strapi fields to component props
   const features = (strapiData?.featureCards && strapiData.featureCards.length > 0)
     ? strapiData.featureCards.map((card) => ({
-        icon: card.icon || 'Shield', // Default to 'Shield' if icon is null
+        icon: card.icon || 'Shield',
         title: card.title,
         description: card.description,
       }))
@@ -445,7 +333,7 @@ export default async function HomePageServer() {
   
   const statistics = (strapiData?.statsSection?.statCards && strapiData.statsSection.statCards.length > 0)
     ? strapiData.statsSection.statCards.map((card) => ({
-        icon: card.icon || 'Award', // Default to 'Award' if icon is null
+        icon: card.icon || 'Award',
         value: card.number,
         label: card.text,
       }))
@@ -455,7 +343,7 @@ export default async function HomePageServer() {
   const whyChooseUsSubtitle = strapiData?.whyChooseUs?.subtitle;
   const reasons = (strapiData?.whyChooseUs?.featureCards && strapiData.whyChooseUs.featureCards.length > 0)
     ? strapiData.whyChooseUs.featureCards.map((card) => ({
-        icon: card.icon || 'Shield', // Default to 'Shield' if icon is null
+        icon: card.icon || 'Shield',
         title: card.title,
         description: card.description,
       }))
@@ -487,52 +375,30 @@ export default async function HomePageServer() {
   const processSubtitle = strapiData?.processSection?.subtitle;
   const processSteps = (strapiData?.processSection?.steps && strapiData.processSection.steps.length > 0)
     ? strapiData.processSection.steps.map((step) => ({
-        icon: step.icon || 'Search', // Default to 'Search' if icon is null
+        icon: step.icon || 'Search',
         title: step.title,
         description: step.description,
         step: step.stepNumber,
       }))
     : homeProcessSteps;
   
-  const faqTitle = strapiData?.faqSection?.title;
-  const faqSubtitle = strapiData?.faqSection?.subtitle;
-  const faqs = (strapiData?.faqSection?.faqItems && strapiData.faqSection.faqItems.length > 0)
-    ? strapiData.faqSection.faqItems.map((item) => ({
-        question: item.question,
-        answer: item.answer,
-      }))
-    : homeFAQs;
-  
   const testimonialsTitle = strapiData?.testimonialsSection?.title;
   const testimonialsSubtitle = strapiData?.testimonialsSection?.subtitle;
   const testimonials = (strapiData?.testimonialsSection?.testimonials && strapiData.testimonialsSection.testimonials.length > 0)
     ? strapiData.testimonialsSection.testimonials.map((testimonial) => ({
         name: testimonial.customerName,
-        role: '', // Strapi không có role, để trống hoặc có thể thêm sau
+        role: '',
         content: testimonial.testimonial,
         rating: testimonial.rating,
         image: getStrapiImageUrl(testimonial.avatar) || '',
       }))
     : homeTestimonials;
   
-  const contactTitle = strapiData?.contactSection?.title;
-  const contactSubtitle = strapiData?.contactSection?.subtitle;
-  const contactInfos = (strapiData?.contactSection?.contactInfoCards && strapiData.contactSection.contactInfoCards.length > 0)
-    ? strapiData.contactSection.contactInfoCards.map((card) => ({
-        icon: card.icon || 'MapPin', // Default to 'MapPin' if icon is null
-        title: card.title,
-        content: card.details,
-        link: card.ctaUrl,
-        linkText: card.ctaText,
-      }))
-    : homeContactInfos;
-  
-  // Professional Services Section
   const servicesTitle = strapiData?.professionalServicesSection?.title;
   const servicesSubtitle = strapiData?.professionalServicesSection?.subtitle;
   const services = (strapiData?.professionalServicesSection?.serviceCards && strapiData.professionalServicesSection.serviceCards.length > 0)
     ? strapiData.professionalServicesSection.serviceCards.map((card) => ({
-        icon: card.icon || 'Settings', // Default to 'Settings' if icon is null
+        icon: card.icon || 'Settings',
         title: card.title,
         description: card.description,
         image: getStrapiImageUrl(card.image) || '',
@@ -541,17 +407,15 @@ export default async function HomePageServer() {
       }))
     : homeServices;
   
-  // Product Categories Section
   const categoriesTitle = strapiData?.productCategoriesSection?.title;
   const categoriesSubtitle = strapiData?.productCategoriesSection?.subtitle;
   
-  // Map icon based on category title (simple mapping)
   const getCategoryIcon = (title: string): string => {
     const titleLower = title.toLowerCase();
     if (titleLower.includes('bảo dưỡng') || titleLower.includes('bao duong')) return 'Wrench';
     if (titleLower.includes('ngoại thất') || titleLower.includes('ngoai that')) return 'Car';
     if (titleLower.includes('đồ chơi') || titleLower.includes('do choi')) return 'Settings';
-    return 'Car'; // Default
+    return 'Car';
   };
   
   const categories = (strapiData?.productCategoriesSection?.danhMucSanPhams && strapiData.productCategoriesSection.danhMucSanPhams.length > 0)
@@ -561,16 +425,14 @@ export default async function HomePageServer() {
         description: danhMuc.moTa || '',
         image: getStrapiImageUrl(danhMuc.anhDanhMuc) || 'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=800&h=500&fit=crop',
         href: danhMuc.slug ? `/san-pham/${danhMuc.slug}` : '#',
-        productCount: 0, // Not used, but kept for interface compatibility
+        productCount: 0,
       }))
     : homeCategories;
   
-  // Featured Products Section
   const productsTitle = strapiData?.featuredProductsSection?.title;
   const productsSubtitle = strapiData?.featuredProductsSection?.subtitle;
   const products = (strapiData?.featuredProductsSection?.products && strapiData.featuredProductsSection.products.length > 0)
     ? strapiData.featuredProductsSection.products.map((product) => {
-        // Get first image from anhSanPham array
         const firstImage = product.anhSanPham && product.anhSanPham.length > 0 
           ? product.anhSanPham[0] 
           : null;
@@ -585,12 +447,11 @@ export default async function HomePageServer() {
           reviews: product.reviewCount || 0,
           badge: product.badges || undefined,
           href: product.slug ? `/chi-tiet-san-pham/${product.slug}` : '#',
-          inStock: true, // Default to true, can be enhanced with API data later
+          inStock: true,
         };
       })
     : homeProducts;
   
-  // Special Promotions Section
   const promosTitle = strapiData?.specialPromotionsSection?.title;
   const promosSubtitle = strapiData?.specialPromotionsSection?.subtitle;
   const promos = (strapiData?.specialPromotionsSection?.promotionCards && strapiData.specialPromotionsSection.promotionCards.length > 0)
@@ -605,23 +466,7 @@ export default async function HomePageServer() {
         endDate: card.endDate,
       }))
     : homePromos;
-  // CTA Section
-  const ctaTitle = strapiData?.ctaSection?.title;
-  const ctaSubtitle = strapiData?.ctaSection?.subtitle;
-  const ctaPrimaryButton = strapiData?.ctaSection?.primaryButton
-    ? {
-        text: strapiData.ctaSection.primaryButton.text,
-        href: strapiData.ctaSection.primaryButton.url || '#',
-      }
-    : undefined;
-  const ctaSecondaryButton = strapiData?.ctaSection?.secondaryButton
-    ? {
-        text: strapiData.ctaSection.secondaryButton.text,
-        href: strapiData.ctaSection.secondaryButton.url || '#',
-      }
-    : undefined;
   
-  // Latest News Section
   const newsTitle = strapiData?.latestNewsSection?.title;
   const newsSubtitle = strapiData?.latestNewsSection?.subtitle;
   const newsViewAllButton = strapiData?.latestNewsSection?.viewAllButton
@@ -631,16 +476,14 @@ export default async function HomePageServer() {
       }
     : undefined;
   
-  // Calculate read time from content (rough estimate: 200 words per minute)
   const calculateReadTime = (content?: string): number => {
-    if (!content) return 5; // default
+    if (!content) return 5;
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     return Math.max(1, Math.ceil(wordCount / 200));
   };
   
   const articles = (strapiData?.latestNewsSection?.blogs && strapiData.latestNewsSection.blogs.length > 0)
     ? strapiData.latestNewsSection.blogs.map((blog) => {
-        // Parse hashtags from string (e.g., "#tag1 #tag2" -> ["tag1", "tag2"])
         const hashtags = blog.hashtag
           ? blog.hashtag.split(/\s+/).map(tag => tag.replace('#', '')).filter(Boolean)
           : [];
@@ -654,18 +497,12 @@ export default async function HomePageServer() {
           publishedAt: blog.publishedAt || new Date().toISOString(),
           readTime: calculateReadTime(blog.moTaNgan),
           category: blog.topicBlog?.name || '',
-          author: 'Auto Tuan Linh', // Default author
+          author: 'Auto Tuan Linh',
           hashtags,
-          featured: false, // Can be enhanced later
+          featured: false,
         };
       })
     : allArticles;
-  
-  // Newsletter Section
-  const newsletterTitle = strapiData?.newsletterSection?.title;
-  const newsletterSubtitle = strapiData?.newsletterSection?.subtitle;
-  const newsletterButtonText = strapiData?.newsletterSection?.buttonText;
-  const newsletterPrivacyText = strapiData?.newsletterSection?.privacyText;
   
   return (
     <>
@@ -696,7 +533,6 @@ export default async function HomePageServer() {
         <BrandsSection title={brandsTitle} subtitle={brandsSubtitle} brands={brands} />
         <ProcessSection title={processTitle} subtitle={processSubtitle} steps={processSteps} />
         <TestimonialsSection title={testimonialsTitle} subtitle={testimonialsSubtitle} testimonials={testimonials} />
-    
       </main>
     </>
   );

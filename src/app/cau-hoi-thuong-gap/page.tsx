@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { 
   ChevronDown, 
   Search, 
-  MessageCircle, 
   Phone, 
   Mail, 
   HelpCircle, 

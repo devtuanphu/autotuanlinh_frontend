@@ -20,10 +20,19 @@ import {
   Sparkles,
   type LucideIcon,
 } from 'lucide-react';
-import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData, trendingSearches } from './constants/headerData';
+import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData } from './constants/headerData';
 import { useCart } from '@/contexts/CartContext';
 import { searchProducts, getStrapiImageUrl } from '@/lib/api/strapi';
 import { Loader2 } from 'lucide-react';
+
+interface SearchProductSuggestion {
+  id: string | number;
+  title: string;
+  slug: string;
+  giaBan?: number;
+  giaGoc?: number;
+  anhSanPham?: Array<{ url: string }>;
+}
 
 // Helper to get icon from category name
 const getIconFromCategory = (category: string): LucideIcon => {
@@ -51,7 +60,7 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchProductSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { getTotalItems } = useCart();
   const cartCount = getTotalItems();
@@ -373,7 +382,7 @@ const Header = () => {
         setIsSearching(true);
         try {
           const results = await searchProducts(searchQuery, 6);
-          setSearchResults(results);
+          setSearchResults(results as unknown as SearchProductSuggestion[]);
         } catch (error) {
           console.error('Search error:', error);
           setSearchResults([]);
@@ -416,11 +425,6 @@ const Header = () => {
     }, 200);
   };
 
-  const handleTrendingClick = (searchTerm: string) => {
-    setSearchQuery(searchTerm);
-    setIsSearchDropdownOpen(false);
-    window.location.href = `/ket-qua-tim-kiem/${encodeURIComponent(searchTerm)}`;
-  };
 
   const handleMegaMenuEnter = (key: string) => {
     // Không cho mở mega menu khi category menu hoặc search dropdown đang mở

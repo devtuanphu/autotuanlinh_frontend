@@ -21,10 +21,19 @@ import {
   Sparkles,
   type LucideIcon,
 } from 'lucide-react';
-import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData, trendingSearches } from './constants/headerData';
+import { menuItems, productCategories as defaultProductCategories, megaMenuData as defaultMegaMenuData } from './constants/headerData';
 import { useCart } from '@/contexts/CartContext';
 import { searchProducts, getStrapiImageUrl } from '@/lib/api/strapi';
 import { Loader2 } from 'lucide-react';
+
+interface SearchProductSuggestion {
+  id: string | number;
+  title: string;
+  slug: string;
+  giaBan?: number;
+  giaGoc?: number;
+  anhSanPham?: Array<{ url: string }>;
+}
 
 // Helper to get icon from category name
 const getIconFromCategory = (category: string): LucideIcon => {
@@ -51,7 +60,7 @@ const HeaderMobile = () => {
   const [expandedSubCategories, setExpandedSubCategories] = useState<Set<string>>(new Set());
   const [productCategories, setProductCategories] = useState(defaultProductCategories);
   const [megaMenuData, setMegaMenuData] = useState(defaultMegaMenuData);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchProductSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { getTotalItems } = useCart();
   const cartCount = getTotalItems();
@@ -266,8 +275,8 @@ const HeaderMobile = () => {
       if (searchQuery.trim().length >= 2) {
         setIsSearching(true);
         try {
-          const results = await searchProducts(searchQuery, 4);
-          setSearchResults(results);
+          const results = await searchProducts(searchQuery, 6);
+          setSearchResults(results as unknown as SearchProductSuggestion[]);
         } catch (error) {
           console.error('Search error:', error);
           setSearchResults([]);
@@ -291,11 +300,6 @@ const HeaderMobile = () => {
     }
   };
 
-  const handleTrendingClick = (searchTerm: string) => {
-    setSearchQuery(searchTerm);
-    setIsSearchOpen(false);
-    window.location.href = `/ket-qua-tim-kiem/${encodeURIComponent(searchTerm)}`;
-  };
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);

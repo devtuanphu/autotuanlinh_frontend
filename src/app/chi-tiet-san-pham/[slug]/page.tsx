@@ -281,10 +281,22 @@ export default async function Page({ params }: PageProps) {
   ];
 
   // Fetch related products
-  let relatedProductsMapped: any[] = [];
+  interface StrapiProduct {
+    id: number | string;
+    title: string;
+    giaBan?: number;
+    giaGoc?: number;
+    anhSanPham?: Array<{ url: string }>;
+    rating?: number;
+    reviewCount?: number;
+    badges?: string;
+    slug?: string;
+  }
+  
+  let relatedProductsMapped: Record<string, unknown>[] = [];
   try {
     const relatedProductsData = await fetchRelatedProducts(params.slug, { revalidate: revalidateTime });
-    relatedProductsMapped = (relatedProductsData || []).map((p: any) => ({
+    relatedProductsMapped = (relatedProductsData as unknown as StrapiProduct[] || []).map((p) => ({
       id: String(p.id),
       name: p.title,
       price: p.giaBan || 0,

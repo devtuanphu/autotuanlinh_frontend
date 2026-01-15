@@ -3,6 +3,7 @@ import { generateMetadata as generateSEOMetadata, seoData } from '@/lib/seo';
 import { Suspense } from 'react';
 import KetQuaTimKiemPageClient from '@/components/ket-qua-tim-kiem/KetQuaTimKiemPageClient';
 import { fetchStrapi, getStrapiImageUrl } from '@/lib/api/strapi';
+import { SearchResult } from '@/lib/data/ket-qua-tim-kiem';
 
 interface PageProps {
   params: {
@@ -32,7 +33,29 @@ export default async function Page({ params, searchParams }: PageProps) {
   const sortBy = searchParams.sort || 'relevance';
 
   // Fetch results from Strapi
-  let results: any[] = [];
+  interface StrapiProduct {
+    id: number | string;
+    title: string;
+    moTaNgan?: string;
+    anhSanPham?: Array<{ url: string }>;
+    slug?: string;
+    publishedAt?: string;
+    createdAt?: string;
+    reviewCount?: number;
+    giaBan?: number;
+  }
+  
+  interface StrapiBlog {
+    id: number | string;
+    title: string;
+    moTaNgan?: string;
+    avatar?: { url: string };
+    slug?: string;
+    publishedAt?: string;
+    createdAt?: string;
+  }
+  
+  let results: SearchResult[] = [];
   
   try {
     if (searchQuery) {
@@ -41,12 +64,12 @@ export default async function Page({ params, searchParams }: PageProps) {
       // Fetch products and blogs in parallel with a larger limit to handle client-side sorting/filtering if needed,
       // or we can just fetch everything for the specific search to merge them.
       const [productData, blogData] = await Promise.all([
-        fetchStrapi<any[]>(
+        fetchStrapi<StrapiProduct[]>(
           `/san-phams?filters[title][$containsi]=${encodedQuery}&populate=anhSanPham&pagination[pageSize]=100`,
           {},
           { revalidate: revalidateTime }
         ).catch(() => []),
-        fetchStrapi<any[]>(
+        fetchStrapi<StrapiBlog[]>(
           `/blogs?filters[title][$containsi]=${encodedQuery}&populate=avatar&pagination[pageSize]=100`,
           {},
           { revalidate: revalidateTime }
@@ -55,7 +78,7 @@ export default async function Page({ params, searchParams }: PageProps) {
       
       // Map products
       if (Array.isArray(productData)) {
-        const productResults = productData.map((p) => ({
+        const productResults: SearchResult[] = productData.map((p) => ({
           id: String(p.id),
           type: 'product' as const,
           title: p.title,
@@ -73,7 +96,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 
       // Map blogs
       if (Array.isArray(blogData)) {
-        const blogResults = blogData.map((b) => ({
+        const blogResults: SearchResult[] = blogData.map((b) => ({
           id: String(b.id),
           type: 'article' as const,
           title: b.title,

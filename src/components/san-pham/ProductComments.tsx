@@ -162,7 +162,7 @@ export default function ProductComments({
           message: result.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.',
         });
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus({
         type: 'error',
         message: 'Có lỗi xảy ra khi kết nối máy chủ.',

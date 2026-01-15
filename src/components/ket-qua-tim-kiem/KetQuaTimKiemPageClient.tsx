@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useParams, useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ArticleListLayout from '@/components/shared/ArticleListLayout';
 import SearchBarSection from './SearchBarSection';
 import FilterSection from './FilterSection';

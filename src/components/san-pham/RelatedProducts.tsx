@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '@/components/shared/ProductCard';
-import { ProductCategoryData, findProductCategoryDetail, generateProductFromItem } from '@/lib/data/san-pham';
 import 'swiper/css';
 
 interface RelatedProductsProps {
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   products: any[];
 }
 

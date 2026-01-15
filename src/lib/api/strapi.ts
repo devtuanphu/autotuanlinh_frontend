@@ -429,7 +429,7 @@ export async function fetchRelatedProducts<T = Record<string, unknown>>(
 /**
  * Search products by title
  */
-export async function searchProducts(query: string, limit: number = 5): Promise<any[]> {
+export async function searchProducts(query: string, limit: number = 5): Promise<Record<string, unknown>[]> {
   if (!query || query.trim().length === 0) return [];
   
   try {
